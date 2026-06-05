@@ -17,6 +17,8 @@
       --muted: #8b8fa8;
       --tag-bg: #252840;
       --card-hover: #1f2235;
+      --pin-color: #f59e0b;
+      --pin-glow: rgba(245, 158, 11, 0.2);
     }
 
     body {
@@ -87,6 +89,27 @@
       color: var(--text);
       background: var(--accent-glow);
     }
+    .filter-btn[data-filter="pinned"] { border-color: var(--pin-color); color: var(--pin-color); }
+    .filter-btn[data-filter="pinned"]:hover,
+    .filter-btn[data-filter="pinned"].active {
+      background: var(--pin-glow);
+      border-color: var(--pin-color);
+      color: var(--pin-color);
+    }
+    .pin-count {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--pin-color);
+      color: #000;
+      border-radius: 10px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      min-width: 16px;
+      height: 16px;
+      padding: 0 4px;
+      margin-left: 4px;
+    }
 
     .search-wrapper {
       margin-left: auto;
@@ -127,6 +150,19 @@
       min-height: 1.2em;
     }
 
+    .section-label {
+      grid-column: 1/-1;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      padding: 0.25rem 0;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 0.25rem;
+    }
+    .section-label.pinned-label { color: var(--pin-color); border-color: var(--pin-color); }
+
     #newsGrid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
@@ -142,7 +178,7 @@
       flex-direction: column;
       gap: 0.75rem;
       transition: border-color 0.2s, background 0.2s, transform 0.15s;
-      cursor: pointer;
+      position: relative;
       text-decoration: none;
       color: inherit;
     }
@@ -151,12 +187,37 @@
       background: var(--card-hover);
       transform: translateY(-2px);
     }
+    .card.pinned {
+      border-color: var(--pin-color);
+      background: rgba(245,158,11,0.04);
+    }
+    .card.pinned:hover { background: rgba(245,158,11,0.08); }
+
+    .pin-btn {
+      position: absolute;
+      top: 0.75rem;
+      right: 0.75rem;
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 1.1rem;
+      line-height: 1;
+      padding: 4px;
+      border-radius: 6px;
+      transition: transform 0.15s, background 0.15s;
+      z-index: 2;
+      opacity: 0.35;
+      color: var(--muted);
+    }
+    .pin-btn:hover { opacity: 1; background: var(--pin-glow); transform: scale(1.15); }
+    .card.pinned .pin-btn { opacity: 1; color: var(--pin-color); }
 
     .card-meta {
       display: flex;
       align-items: center;
       gap: 0.5rem;
       font-size: 0.78rem;
+      padding-right: 1.5rem;
     }
 
     .source-tag {
@@ -254,6 +315,7 @@
 
 <div class="controls">
   <button class="filter-btn active" data-filter="all">All</button>
+  <button class="filter-btn" data-filter="pinned">📌 Pinned<span class="pin-count" id="pinCount" style="display:none"></span></button>
   <button class="filter-btn" data-filter="Research">Research</button>
   <button class="filter-btn" data-filter="Industry">Industry</button>
   <button class="filter-btn" data-filter="Policy">Policy</button>
@@ -273,6 +335,7 @@
 
 <script>
 const PROXY = 'https://api.allorigins.win/get?url=';
+const STORAGE_KEY = 'ai-news-pinned';
 
 const SOURCES = [
   {
@@ -315,6 +378,42 @@ const SOURCES = [
 
 let allArticles = [];
 let activeFilter = 'all';
+
+// --- Pinned storage ---
+
+function loadPinned() {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}'); }
+  catch { return {}; }
+}
+
+function savePinned(pinned) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(pinned));
+}
+
+function isPinned(link) {
+  return !!loadPinned()[link];
+}
+
+function togglePin(article) {
+  const pinned = loadPinned();
+  if (pinned[article.link]) {
+    delete pinned[article.link];
+  } else {
+    pinned[article.link] = { ...article, pinnedAt: Date.now() };
+  }
+  savePinned(pinned);
+  updatePinCount();
+  renderCards(allArticles);
+}
+
+function updatePinCount() {
+  const count = Object.keys(loadPinned()).length;
+  const el = document.getElementById('pinCount');
+  if (count > 0) { el.textContent = count; el.style.display = ''; }
+  else { el.style.display = 'none'; }
+}
+
+// --- RSS parsing ---
 
 function parseRSS(xmlText) {
   const parser = new DOMParser();
@@ -372,6 +471,8 @@ async function fetchSource(source) {
     .map(a => ({ ...a, source: source.name, category: source.category }));
 }
 
+// --- Rendering ---
+
 function renderSkeletons(n = 6) {
   const grid = document.getElementById('newsGrid');
   grid.innerHTML = Array(n).fill(0).map(() => `
@@ -383,9 +484,47 @@ function renderSkeletons(n = 6) {
     </div>`).join('');
 }
 
+function cardHtml(a) {
+  const pinned = isPinned(a.link);
+  return `
+    <div class="card${pinned ? ' pinned' : ''}" data-link="${escHtml(a.link)}">
+      <button class="pin-btn" title="${pinned ? 'Unpin' : 'Pin this article'}" onclick="handlePin(event, '${escHtml(a.link)}')">📌</button>
+      <div class="card-meta">
+        <span class="source-tag">${escHtml(a.source)}</span>
+        <span class="card-date">${formatDate(a.pubDate)}</span>
+      </div>
+      <a href="${escHtml(a.link)}" target="_blank" rel="noopener noreferrer" style="text-decoration:none;color:inherit;display:contents;">
+        <div class="card-title">${escHtml(a.title)}</div>
+        ${a.desc ? `<div class="card-desc">${escHtml(a.desc)}</div>` : ''}
+        <div class="card-footer">Read article →</div>
+      </a>
+    </div>`;
+}
+
 function renderCards(articles) {
   const grid = document.getElementById('newsGrid');
   const query = document.getElementById('searchInput').value.toLowerCase();
+  const pinned = loadPinned();
+
+  if (activeFilter === 'pinned') {
+    const pinnedList = Object.values(pinned).sort((a, b) => b.pinnedAt - a.pinnedAt);
+    const filtered = pinnedList.filter(a =>
+      !query || (a.title + a.desc + a.source).toLowerCase().includes(query)
+    );
+    if (!filtered.length) {
+      grid.innerHTML = `
+        <div class="empty-state">
+          <svg width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+            <path d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/>
+          </svg>
+          <p>No pinned articles yet. Click 📌 on any article to pin it.</p>
+        </div>`;
+      return;
+    }
+    grid.innerHTML = filtered.map(cardHtml).join('');
+    return;
+  }
+
   const filtered = articles.filter(a => {
     const matchFilter = activeFilter === 'all' || a.category === activeFilter;
     const matchSearch = !query || (a.title + a.desc + a.source).toLowerCase().includes(query);
@@ -403,16 +542,25 @@ function renderCards(articles) {
     return;
   }
 
-  grid.innerHTML = filtered.map(a => `
-    <a class="card" href="${escHtml(a.link)}" target="_blank" rel="noopener noreferrer">
-      <div class="card-meta">
-        <span class="source-tag">${escHtml(a.source)}</span>
-        <span class="card-date">${formatDate(a.pubDate)}</span>
-      </div>
-      <div class="card-title">${escHtml(a.title)}</div>
-      ${a.desc ? `<div class="card-desc">${escHtml(a.desc)}</div>` : ''}
-      <div class="card-footer">Read article →</div>
-    </a>`).join('');
+  const pinnedInView = filtered.filter(a => pinned[a.link]);
+  const rest = filtered.filter(a => !pinned[a.link]);
+
+  let html = '';
+  if (pinnedInView.length) {
+    html += `<div class="section-label pinned-label" style="grid-column:1/-1">📌 Pinned</div>`;
+    html += pinnedInView.map(cardHtml).join('');
+    if (rest.length) html += `<div class="section-label" style="grid-column:1/-1">Latest</div>`;
+  }
+  html += rest.map(cardHtml).join('');
+  grid.innerHTML = html;
+}
+
+function handlePin(event, link) {
+  event.preventDefault();
+  event.stopPropagation();
+  const article = allArticles.find(a => a.link === link)
+    || Object.values(loadPinned()).find(a => a.link === link);
+  if (article) togglePin(article);
 }
 
 function escHtml(str) {
@@ -424,6 +572,8 @@ function escHtml(str) {
 }
 
 function filterCards() { renderCards(allArticles); }
+
+// --- Load news ---
 
 async function loadNews() {
   const btn = document.getElementById('refreshBtn');
@@ -481,6 +631,7 @@ document.querySelectorAll('.filter-btn').forEach(btn => {
   });
 });
 
+updatePinCount();
 loadNews();
 </script>
 </body>
