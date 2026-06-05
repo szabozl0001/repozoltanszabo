@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI News</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0f1117;
+      --surface: #1a1d27;
+      --border: #2a2d3e;
+      --accent: #6c63ff;
+      --accent-glow: rgba(108, 99, 255, 0.25);
+      --text: #e8eaf0;
+      --muted: #8b8fa8;
+      --tag-bg: #252840;
+      --card-hover: #1f2235;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      min-height: 100vh;
+    }
+
+    header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 1.25rem 2rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .logo {
+      font-size: 1.4rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, #6c63ff, #a78bfa);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .logo span { font-weight: 300; }
+
+    .refresh-btn {
+      margin-left: auto;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      padding: 0.5rem 1.25rem;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: opacity 0.2s, transform 0.15s;
+    }
+    .refresh-btn:hover { opacity: 0.85; transform: translateY(-1px); }
+    .refresh-btn:active { transform: translateY(0); }
+    .refresh-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .controls {
+      padding: 1.25rem 2rem;
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .filter-btn {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--muted);
+      padding: 0.4rem 1rem;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .filter-btn:hover, .filter-btn.active {
+      border-color: var(--accent);
+      color: var(--text);
+      background: var(--accent-glow);
+    }
+
+    .search-wrapper {
+      margin-left: auto;
+      position: relative;
+    }
+    .search-wrapper svg {
+      position: absolute;
+      left: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--muted);
+      pointer-events: none;
+    }
+    #searchInput {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 0.45rem 0.75rem 0.45rem 2.2rem;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      width: 220px;
+      transition: border-color 0.2s;
+      outline: none;
+    }
+    #searchInput:focus { border-color: var(--accent); }
+    #searchInput::placeholder { color: var(--muted); }
+
+    main {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 2rem 3rem;
+    }
+
+    #statusBar {
+      font-size: 0.82rem;
+      color: var(--muted);
+      margin-bottom: 1.25rem;
+      min-height: 1.2em;
+    }
+
+    #newsGrid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+      gap: 1.25rem;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.25rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      transition: border-color 0.2s, background 0.2s, transform 0.15s;
+      cursor: pointer;
+      text-decoration: none;
+      color: inherit;
+    }
+    .card:hover {
+      border-color: var(--accent);
+      background: var(--card-hover);
+      transform: translateY(-2px);
+    }
+
+    .card-meta {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.78rem;
+    }
+
+    .source-tag {
+      background: var(--tag-bg);
+      border: 1px solid var(--border);
+      color: var(--accent);
+      padding: 0.2rem 0.55rem;
+      border-radius: 4px;
+      font-weight: 600;
+      font-size: 0.72rem;
+      letter-spacing: 0.02em;
+      white-space: nowrap;
+    }
+
+    .card-date { color: var(--muted); margin-left: auto; white-space: nowrap; }
+
+    .card-title {
+      font-size: 1rem;
+      font-weight: 600;
+      line-height: 1.4;
+    }
+
+    .card-desc {
+      font-size: 0.85rem;
+      color: var(--muted);
+      line-height: 1.5;
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .card-footer {
+      margin-top: auto;
+      font-size: 0.78rem;
+      color: var(--accent);
+      font-weight: 500;
+    }
+
+    .skeleton {
+      background: linear-gradient(90deg, var(--surface) 25%, var(--border) 50%, var(--surface) 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+      border-radius: 6px;
+    }
+    @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+    .skeleton-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.25rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+    .sk-line { height: 14px; }
+    .sk-title { height: 18px; width: 85%; }
+    .sk-p1 { height: 12px; width: 100%; }
+    .sk-p2 { height: 12px; width: 75%; }
+
+    .empty-state {
+      grid-column: 1/-1;
+      text-align: center;
+      padding: 4rem 1rem;
+      color: var(--muted);
+    }
+    .empty-state svg { margin-bottom: 1rem; opacity: 0.4; }
+    .empty-state p { font-size: 1rem; }
+
+    .error-banner {
+      background: rgba(239,68,68,0.1);
+      border: 1px solid rgba(239,68,68,0.3);
+      border-radius: 8px;
+      padding: 0.75rem 1rem;
+      font-size: 0.85rem;
+      color: #fca5a5;
+      margin-bottom: 1rem;
+    }
+
+    @media (max-width: 600px) {
+      header, .controls, main { padding-left: 1rem; padding-right: 1rem; }
+      #newsGrid { grid-template-columns: 1fr; }
+      .search-wrapper { margin-left: 0; width: 100%; }
+      #searchInput { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo">AI<span>News</span></div>
+  <button class="refresh-btn" id="refreshBtn" onclick="loadNews()">&#8635; Refresh</button>
+</header>
+
+<div class="controls">
+  <button class="filter-btn active" data-filter="all">All</button>
+  <button class="filter-btn" data-filter="Research">Research</button>
+  <button class="filter-btn" data-filter="Industry">Industry</button>
+  <button class="filter-btn" data-filter="Policy">Policy</button>
+  <button class="filter-btn" data-filter="Tools">Tools</button>
+  <div class="search-wrapper">
+    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+      <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
+    </svg>
+    <input id="searchInput" type="text" placeholder="Search articles…" oninput="filterCards()" />
+  </div>
+</div>
+
+<main>
+  <div id="statusBar"></div>
+  <div id="newsGrid"></div>
+</main>
+
+<script>
+const PROXY = 'https://api.allorigins.win/get?url=';
+
+const SOURCES = [
+  {
+    name: 'MIT Tech Review AI',
+    url: 'https://www.technologyreview.com/feed/',
+    category: 'Research',
+    keywords: ['ai','artificial intelligence','machine learning','deep learning','gpt','llm','neural','robot']
+  },
+  {
+    name: 'The Verge AI',
+    url: 'https://www.theverge.com/rss/index.xml',
+    category: 'Industry',
+    keywords: ['ai','artificial intelligence','openai','google','anthropic','llm','chatgpt','gemini','claude','deepmind']
+  },
+  {
+    name: 'VentureBeat AI',
+    url: 'https://venturebeat.com/category/ai/feed/',
+    category: 'Industry',
+    keywords: ['ai','artificial intelligence','ml','llm','model','neural','robot','automation']
+  },
+  {
+    name: 'Ars Technica AI',
+    url: 'https://feeds.arstechnica.com/arstechnica/index',
+    category: 'Research',
+    keywords: ['ai','artificial intelligence','machine learning','gpt','llm','chatbot','generative','neural']
+  },
+  {
+    name: 'TechCrunch AI',
+    url: 'https://techcrunch.com/feed/',
+    category: 'Industry',
+    keywords: ['ai','artificial intelligence','openai','anthropic','llm','chatgpt','generative','model']
+  },
+  {
+    name: 'Wired AI',
+    url: 'https://www.wired.com/feed/rss',
+    category: 'Policy',
+    keywords: ['ai','artificial intelligence','machine learning','deep learning','regulation','policy','chatbot','llm']
+  }
+];
+
+let allArticles = [];
+let activeFilter = 'all';
+
+function parseRSS(xmlText) {
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(xmlText, 'text/xml');
+  const items = doc.querySelectorAll('item, entry');
+  return Array.from(items).slice(0, 15).map(item => {
+    const get = (sel, attr) => {
+      const el = item.querySelector(sel);
+      return el ? (attr ? el.getAttribute(attr) : el.textContent.trim()) : '';
+    };
+    const title = get('title');
+    const link = get('link') || item.querySelector('link')?.getAttribute('href') || '';
+    const pubDate = get('pubDate') || get('published') || get('updated') || '';
+    const desc = get('description') || get('summary') || get('content') || '';
+    return { title, link, pubDate, desc: stripHtml(desc).slice(0, 280) };
+  }).filter(a => a.title && a.link);
+}
+
+function stripHtml(html) {
+  const tmp = document.createElement('div');
+  tmp.innerHTML = html;
+  return tmp.textContent || tmp.innerText || '';
+}
+
+function isAiRelated(article, keywords) {
+  const text = (article.title + ' ' + article.desc).toLowerCase();
+  return keywords.some(k => text.includes(k));
+}
+
+function formatDate(str) {
+  if (!str) return '';
+  try {
+    const d = new Date(str);
+    if (isNaN(d)) return '';
+    const now = new Date();
+    const diff = now - d;
+    const mins = Math.floor(diff / 60000);
+    const hours = Math.floor(diff / 3600000);
+    const days = Math.floor(diff / 86400000);
+    if (mins < 60) return `${mins}m ago`;
+    if (hours < 24) return `${hours}h ago`;
+    if (days < 7) return `${days}d ago`;
+    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  } catch { return ''; }
+}
+
+async function fetchSource(source) {
+  const url = PROXY + encodeURIComponent(source.url);
+  const resp = await fetch(url, { signal: AbortSignal.timeout(12000) });
+  if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+  const json = await resp.json();
+  const articles = parseRSS(json.contents || '');
+  return articles
+    .filter(a => isAiRelated(a, source.keywords))
+    .map(a => ({ ...a, source: source.name, category: source.category }));
+}
+
+function renderSkeletons(n = 6) {
+  const grid = document.getElementById('newsGrid');
+  grid.innerHTML = Array(n).fill(0).map(() => `
+    <div class="skeleton-card">
+      <div class="skeleton sk-line" style="width:40%"></div>
+      <div class="skeleton sk-title"></div>
+      <div class="skeleton sk-p1"></div>
+      <div class="skeleton sk-p2"></div>
+    </div>`).join('');
+}
+
+function renderCards(articles) {
+  const grid = document.getElementById('newsGrid');
+  const query = document.getElementById('searchInput').value.toLowerCase();
+  const filtered = articles.filter(a => {
+    const matchFilter = activeFilter === 'all' || a.category === activeFilter;
+    const matchSearch = !query || (a.title + a.desc + a.source).toLowerCase().includes(query);
+    return matchFilter && matchSearch;
+  });
+
+  if (!filtered.length) {
+    grid.innerHTML = `
+      <div class="empty-state">
+        <svg width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+          <path d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+        <p>No articles found. Try a different filter or search term.</p>
+      </div>`;
+    return;
+  }
+
+  grid.innerHTML = filtered.map(a => `
+    <a class="card" href="${escHtml(a.link)}" target="_blank" rel="noopener noreferrer">
+      <div class="card-meta">
+        <span class="source-tag">${escHtml(a.source)}</span>
+        <span class="card-date">${formatDate(a.pubDate)}</span>
+      </div>
+      <div class="card-title">${escHtml(a.title)}</div>
+      ${a.desc ? `<div class="card-desc">${escHtml(a.desc)}</div>` : ''}
+      <div class="card-footer">Read article →</div>
+    </a>`).join('');
+}
+
+function escHtml(str) {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+function filterCards() { renderCards(allArticles); }
+
+async function loadNews() {
+  const btn = document.getElementById('refreshBtn');
+  const status = document.getElementById('statusBar');
+  btn.disabled = true;
+  btn.textContent = '⏳ Loading…';
+  renderSkeletons();
+
+  const errorEl = document.querySelector('.error-banner');
+  if (errorEl) errorEl.remove();
+
+  const results = await Promise.allSettled(SOURCES.map(fetchSource));
+
+  let articles = [];
+  let errors = 0;
+  results.forEach((r, i) => {
+    if (r.status === 'fulfilled') articles.push(...r.value);
+    else { errors++; console.warn(`Failed ${SOURCES[i].name}:`, r.reason); }
+  });
+
+  articles.sort((a, b) => new Date(b.pubDate) - new Date(a.pubDate));
+
+  const seen = new Set();
+  allArticles = articles.filter(a => {
+    const key = a.title.toLowerCase().replace(/\s+/g, ' ').slice(0, 60);
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+
+  renderCards(allArticles);
+
+  const total = allArticles.length;
+  status.textContent = `${total} articles from ${SOURCES.length - errors} sources` +
+    (errors ? ` · ${errors} source${errors > 1 ? 's' : ''} unavailable` : '') +
+    ` · Updated ${new Date().toLocaleTimeString()}`;
+
+  if (errors === SOURCES.length) {
+    const banner = document.createElement('div');
+    banner.className = 'error-banner';
+    banner.textContent = 'Could not reach any news sources. Please check your connection and try refreshing.';
+    document.querySelector('main').prepend(banner);
+  }
+
+  btn.disabled = false;
+  btn.textContent = '↻ Refresh';
+}
+
+document.querySelectorAll('.filter-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    activeFilter = btn.dataset.filter;
+    filterCards();
+  });
+});
+
+loadNews();
+</script>
+</body>
+</html>
