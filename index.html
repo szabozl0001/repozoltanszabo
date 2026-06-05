@@ -21,6 +21,7 @@
       --pin-glow: rgba(245, 158, 11, 0.2);
       --reddit-color: #ff4500;
       --x-color: #1d9bf0;
+      --github-color: #58a6ff;
     }
 
     body {
@@ -111,6 +112,13 @@
       background: rgba(29,155,240,0.12);
       border-color: var(--x-color);
       color: var(--x-color);
+    }
+    .filter-btn[data-filter="GitHub"] { border-color: var(--github-color); color: var(--github-color); }
+    .filter-btn[data-filter="GitHub"]:hover,
+    .filter-btn[data-filter="GitHub"].active {
+      background: rgba(88,166,255,0.12);
+      border-color: var(--github-color);
+      color: var(--github-color);
     }
 
     .pin-count {
@@ -211,6 +219,7 @@
     .card.pinned:hover { background: rgba(245,158,11,0.08); }
     .card[data-cat="Reddit"] { border-left: 3px solid var(--reddit-color); }
     .card[data-cat="X"]      { border-left: 3px solid var(--x-color); }
+    .card[data-cat="GitHub"] { border-left: 3px solid var(--github-color); }
 
     .pin-btn {
       position: absolute;
@@ -253,6 +262,7 @@
     }
     .source-tag.reddit { color: var(--reddit-color); border-color: rgba(255,69,0,0.3); }
     .source-tag.x      { color: var(--x-color);      border-color: rgba(29,155,240,0.3); }
+    .source-tag.github { color: var(--github-color); border-color: rgba(88,166,255,0.3); }
 
     .card-date { color: var(--muted); margin-left: auto; white-space: nowrap; }
 
@@ -343,6 +353,7 @@
   <button class="filter-btn" data-filter="Policy">Policy</button>
   <button class="filter-btn" data-filter="Reddit">🟠 Reddit</button>
   <button class="filter-btn" data-filter="X">𝕏 X/Twitter</button>
+  <button class="filter-btn" data-filter="GitHub">⚫ GitHub</button>
   <div class="search-wrapper">
     <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
       <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
@@ -432,44 +443,60 @@ const SOURCES = [
     keywords: ['chatgpt','gpt','openai','plugin','feature','update','model','sora','dalle','image','voice','custom']
   },
 
-  // X / Twitter via nitter (tried in order, first success wins per account)
+  // GitHub
+  {
+    name: 'GitHub Blog',
+    url: 'https://github.blog/feed/',
+    category: 'GitHub',
+    keywords: ['ai','artificial intelligence','copilot','machine learning','llm','model','ml','neural','agent','automation','code']
+  },
+  {
+    name: 'GitHub Changelog',
+    url: 'https://github.blog/changelog/feed/',
+    category: 'GitHub',
+    keywords: ['ai','copilot','ml','model','code','agent','automation','suggest','completion','review']
+  },
+
+  // X / Twitter via nitter — tries multiple mirrors automatically
   {
     name: 'X: @OpenAI',
-    url: 'https://nitter.privacydev.net/OpenAI/rss',
+    url: 'OpenAI',
     category: 'X',
-    keywords: ['ai','model','gpt','sora','dalle','update','launch','research','safety','agi','api','feature']
+    keywords: ['ai','model','gpt','sora','dalle','update','launch','research','safety','agi','api','feature','o1','o3']
   },
   {
     name: 'X: @AnthropicAI',
-    url: 'https://nitter.privacydev.net/AnthropicAI/rss',
+    url: 'AnthropicAI',
     category: 'X',
     keywords: ['claude','ai','safety','model','constitutional','research','alignment','api','feature']
   },
   {
     name: 'X: @GoogleDeepMind',
-    url: 'https://nitter.privacydev.net/GoogleDeepMind/rss',
+    url: 'GoogleDeepMind',
     category: 'X',
     keywords: ['gemini','ai','model','research','paper','deepmind','alphafold','robot','agent']
   },
   {
     name: 'X: @sama',
-    url: 'https://nitter.privacydev.net/sama/rss',
+    url: 'sama',
     category: 'X',
     keywords: ['ai','agi','openai','model','safety','research','future','intelligence','compute']
   },
   {
     name: 'X: @ylecun',
-    url: 'https://nitter.privacydev.net/ylecun/rss',
+    url: 'ylecun',
     category: 'X',
     keywords: ['ai','llm','model','learning','neural','open','research','paper','intelligence']
   }
 ];
 
-// Nitter fallback instances for X sources
+// Nitter fallback instances — tried in order, first working one is used
 const NITTER_MIRRORS = [
-  'https://nitter.privacydev.net',
-  'https://nitter.1d4.us',
-  'https://nitter.kavin.rocks'
+  'https://xcancel.com',
+  'https://nitter.poast.org',
+  'https://lightbrd.com',
+  'https://bird.trom.tf',
+  'https://nitter.privacydev.net'
 ];
 
 let allArticles = [];
@@ -557,14 +584,17 @@ function formatDate(str) {
 
 // Try fetching X source via multiple nitter mirrors
 async function fetchXSource(source) {
-  const handle = source.url.match(/\/([^/]+)\/rss$/)?.[1] || '';
+  const handle = source.url; // url field holds the Twitter handle directly
   for (const mirror of NITTER_MIRRORS) {
     try {
-      const url = PROXY + encodeURIComponent(`${mirror}/${handle}/rss`);
-      const resp = await fetch(url, { signal: AbortSignal.timeout(8000) });
+      const rssUrl = `${mirror}/${handle}/rss`;
+      const url = PROXY + encodeURIComponent(rssUrl);
+      const resp = await fetch(url, { signal: AbortSignal.timeout(10000) });
       if (!resp.ok) continue;
       const json = await resp.json();
-      if (!json.contents || json.contents.length < 50) continue;
+      if (!json.contents || json.contents.length < 100) continue;
+      // Reject HTML error pages from nitter
+      if (json.contents.includes('<html') && !json.contents.includes('<rss')) continue;
       const articles = parseRSS(json.contents);
       if (!articles.length) continue;
       return articles
@@ -572,7 +602,7 @@ async function fetchXSource(source) {
         .map(a => ({ ...a, source: source.name, category: 'X' }));
     } catch { /* try next mirror */ }
   }
-  throw new Error('All nitter mirrors failed');
+  throw new Error(`No nitter mirror responded for @${handle}`);
 }
 
 async function fetchSource(source) {
@@ -603,6 +633,7 @@ function renderSkeletons(n = 9) {
 function tagClass(cat) {
   if (cat === 'Reddit') return 'reddit';
   if (cat === 'X') return 'x';
+  if (cat === 'GitHub') return 'github';
   return '';
 }
 
