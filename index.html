@@ -19,6 +19,8 @@
       --card-hover: #1f2235;
       --pin-color: #f59e0b;
       --pin-glow: rgba(245, 158, 11, 0.2);
+      --reddit-color: #ff4500;
+      --x-color: #1d9bf0;
     }
 
     body {
@@ -48,7 +50,6 @@
       -webkit-text-fill-color: transparent;
       background-clip: text;
     }
-
     .logo span { font-weight: 300; }
 
     .refresh-btn {
@@ -67,9 +68,9 @@
     .refresh-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
     .controls {
-      padding: 1.25rem 2rem;
+      padding: 1rem 2rem;
       display: flex;
-      gap: 0.75rem;
+      gap: 0.6rem;
       flex-wrap: wrap;
       align-items: center;
     }
@@ -78,11 +79,12 @@
       background: var(--surface);
       border: 1px solid var(--border);
       color: var(--muted);
-      padding: 0.4rem 1rem;
+      padding: 0.35rem 0.9rem;
       border-radius: 20px;
-      font-size: 0.85rem;
+      font-size: 0.82rem;
       cursor: pointer;
       transition: all 0.2s;
+      white-space: nowrap;
     }
     .filter-btn:hover, .filter-btn.active {
       border-color: var(--accent);
@@ -96,6 +98,21 @@
       border-color: var(--pin-color);
       color: var(--pin-color);
     }
+    .filter-btn[data-filter="Reddit"] { border-color: var(--reddit-color); color: var(--reddit-color); }
+    .filter-btn[data-filter="Reddit"]:hover,
+    .filter-btn[data-filter="Reddit"].active {
+      background: rgba(255,69,0,0.12);
+      border-color: var(--reddit-color);
+      color: var(--reddit-color);
+    }
+    .filter-btn[data-filter="X"] { border-color: var(--x-color); color: var(--x-color); }
+    .filter-btn[data-filter="X"]:hover,
+    .filter-btn[data-filter="X"].active {
+      background: rgba(29,155,240,0.12);
+      border-color: var(--x-color);
+      color: var(--x-color);
+    }
+
     .pin-count {
       display: inline-flex;
       align-items: center;
@@ -138,7 +155,7 @@
     #searchInput::placeholder { color: var(--muted); }
 
     main {
-      max-width: 1200px;
+      max-width: 1280px;
       margin: 0 auto;
       padding: 0 2rem 3rem;
     }
@@ -152,31 +169,31 @@
 
     .section-label {
       grid-column: 1/-1;
-      font-size: 0.75rem;
+      font-size: 0.72rem;
       font-weight: 700;
       letter-spacing: 0.08em;
       text-transform: uppercase;
       color: var(--muted);
       padding: 0.25rem 0;
       border-bottom: 1px solid var(--border);
-      margin-bottom: 0.25rem;
+      margin-bottom: 0.1rem;
     }
     .section-label.pinned-label { color: var(--pin-color); border-color: var(--pin-color); }
 
     #newsGrid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
-      gap: 1.25rem;
+      gap: 1.1rem;
     }
 
     .card {
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: 12px;
-      padding: 1.25rem;
+      padding: 1.1rem;
       display: flex;
       flex-direction: column;
-      gap: 0.75rem;
+      gap: 0.65rem;
       transition: border-color 0.2s, background 0.2s, transform 0.15s;
       position: relative;
       text-decoration: none;
@@ -192,56 +209,61 @@
       background: rgba(245,158,11,0.04);
     }
     .card.pinned:hover { background: rgba(245,158,11,0.08); }
+    .card[data-cat="Reddit"] { border-left: 3px solid var(--reddit-color); }
+    .card[data-cat="X"]      { border-left: 3px solid var(--x-color); }
 
     .pin-btn {
       position: absolute;
-      top: 0.75rem;
-      right: 0.75rem;
+      top: 0.65rem;
+      right: 0.65rem;
       background: none;
       border: none;
       cursor: pointer;
-      font-size: 1.1rem;
+      font-size: 1rem;
       line-height: 1;
       padding: 4px;
       border-radius: 6px;
       transition: transform 0.15s, background 0.15s;
       z-index: 2;
-      opacity: 0.35;
+      opacity: 0.3;
       color: var(--muted);
     }
-    .pin-btn:hover { opacity: 1; background: var(--pin-glow); transform: scale(1.15); }
+    .pin-btn:hover { opacity: 1; background: var(--pin-glow); transform: scale(1.2); }
     .card.pinned .pin-btn { opacity: 1; color: var(--pin-color); }
 
     .card-meta {
       display: flex;
       align-items: center;
-      gap: 0.5rem;
-      font-size: 0.78rem;
-      padding-right: 1.5rem;
+      gap: 0.45rem;
+      font-size: 0.75rem;
+      padding-right: 1.6rem;
+      flex-wrap: wrap;
     }
 
     .source-tag {
       background: var(--tag-bg);
       border: 1px solid var(--border);
       color: var(--accent);
-      padding: 0.2rem 0.55rem;
+      padding: 0.18rem 0.5rem;
       border-radius: 4px;
       font-weight: 600;
-      font-size: 0.72rem;
+      font-size: 0.7rem;
       letter-spacing: 0.02em;
       white-space: nowrap;
     }
+    .source-tag.reddit { color: var(--reddit-color); border-color: rgba(255,69,0,0.3); }
+    .source-tag.x      { color: var(--x-color);      border-color: rgba(29,155,240,0.3); }
 
     .card-date { color: var(--muted); margin-left: auto; white-space: nowrap; }
 
     .card-title {
-      font-size: 1rem;
+      font-size: 0.97rem;
       font-weight: 600;
       line-height: 1.4;
     }
 
     .card-desc {
-      font-size: 0.85rem;
+      font-size: 0.83rem;
       color: var(--muted);
       line-height: 1.5;
       display: -webkit-box;
@@ -252,7 +274,7 @@
 
     .card-footer {
       margin-top: auto;
-      font-size: 0.78rem;
+      font-size: 0.76rem;
       color: var(--accent);
       font-weight: 500;
     }
@@ -269,15 +291,15 @@
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: 12px;
-      padding: 1.25rem;
+      padding: 1.1rem;
       display: flex;
       flex-direction: column;
-      gap: 0.75rem;
+      gap: 0.65rem;
     }
-    .sk-line { height: 14px; }
-    .sk-title { height: 18px; width: 85%; }
-    .sk-p1 { height: 12px; width: 100%; }
-    .sk-p2 { height: 12px; width: 75%; }
+    .sk-line  { height: 13px; }
+    .sk-title { height: 17px; width: 85%; }
+    .sk-p1    { height: 11px; width: 100%; }
+    .sk-p2    { height: 11px; width: 72%; }
 
     .empty-state {
       grid-column: 1/-1;
@@ -319,7 +341,8 @@
   <button class="filter-btn" data-filter="Research">Research</button>
   <button class="filter-btn" data-filter="Industry">Industry</button>
   <button class="filter-btn" data-filter="Policy">Policy</button>
-  <button class="filter-btn" data-filter="Tools">Tools</button>
+  <button class="filter-btn" data-filter="Reddit">🟠 Reddit</button>
+  <button class="filter-btn" data-filter="X">𝕏 X/Twitter</button>
   <div class="search-wrapper">
     <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
       <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
@@ -337,43 +360,116 @@
 const PROXY = 'https://api.allorigins.win/get?url=';
 const STORAGE_KEY = 'ai-news-pinned';
 
+// --- News sources ---
 const SOURCES = [
+  // Established news
   {
-    name: 'MIT Tech Review AI',
+    name: 'MIT Tech Review',
     url: 'https://www.technologyreview.com/feed/',
     category: 'Research',
     keywords: ['ai','artificial intelligence','machine learning','deep learning','gpt','llm','neural','robot']
   },
   {
-    name: 'The Verge AI',
+    name: 'The Verge',
     url: 'https://www.theverge.com/rss/index.xml',
     category: 'Industry',
     keywords: ['ai','artificial intelligence','openai','google','anthropic','llm','chatgpt','gemini','claude','deepmind']
   },
   {
-    name: 'VentureBeat AI',
+    name: 'VentureBeat',
     url: 'https://venturebeat.com/category/ai/feed/',
     category: 'Industry',
     keywords: ['ai','artificial intelligence','ml','llm','model','neural','robot','automation']
   },
   {
-    name: 'Ars Technica AI',
+    name: 'Ars Technica',
     url: 'https://feeds.arstechnica.com/arstechnica/index',
     category: 'Research',
     keywords: ['ai','artificial intelligence','machine learning','gpt','llm','chatbot','generative','neural']
   },
   {
-    name: 'TechCrunch AI',
+    name: 'TechCrunch',
     url: 'https://techcrunch.com/feed/',
     category: 'Industry',
     keywords: ['ai','artificial intelligence','openai','anthropic','llm','chatgpt','generative','model']
   },
   {
-    name: 'Wired AI',
+    name: 'Wired',
     url: 'https://www.wired.com/feed/rss',
     category: 'Policy',
     keywords: ['ai','artificial intelligence','machine learning','deep learning','regulation','policy','chatbot','llm']
+  },
+
+  // Reddit subreddits
+  {
+    name: 'r/artificial',
+    url: 'https://www.reddit.com/r/artificial/.rss?limit=25',
+    category: 'Reddit',
+    keywords: ['ai','artificial intelligence','ml','llm','chatbot','openai','anthropic','gemini','gpt','neural','robot','agent']
+  },
+  {
+    name: 'r/MachineLearning',
+    url: 'https://www.reddit.com/r/MachineLearning/.rss?limit=25',
+    category: 'Reddit',
+    keywords: ['model','learning','neural','transformer','training','inference','paper','benchmark','dataset','llm','gpt','diffusion']
+  },
+  {
+    name: 'r/LocalLLaMA',
+    url: 'https://www.reddit.com/r/LocalLLaMA/.rss?limit=25',
+    category: 'Reddit',
+    keywords: ['llm','model','llama','mistral','phi','gemma','quantiz','gpu','inference','fine','lora','gguf','ollama','local']
+  },
+  {
+    name: 'r/singularity',
+    url: 'https://www.reddit.com/r/singularity/.rss?limit=25',
+    category: 'Reddit',
+    keywords: ['ai','agi','artificial','openai','anthropic','google','deepmind','robot','model','gpt','claude','gemini']
+  },
+  {
+    name: 'r/ChatGPT',
+    url: 'https://www.reddit.com/r/ChatGPT/.rss?limit=25',
+    category: 'Reddit',
+    keywords: ['chatgpt','gpt','openai','plugin','feature','update','model','sora','dalle','image','voice','custom']
+  },
+
+  // X / Twitter via nitter (tried in order, first success wins per account)
+  {
+    name: 'X: @OpenAI',
+    url: 'https://nitter.privacydev.net/OpenAI/rss',
+    category: 'X',
+    keywords: ['ai','model','gpt','sora','dalle','update','launch','research','safety','agi','api','feature']
+  },
+  {
+    name: 'X: @AnthropicAI',
+    url: 'https://nitter.privacydev.net/AnthropicAI/rss',
+    category: 'X',
+    keywords: ['claude','ai','safety','model','constitutional','research','alignment','api','feature']
+  },
+  {
+    name: 'X: @GoogleDeepMind',
+    url: 'https://nitter.privacydev.net/GoogleDeepMind/rss',
+    category: 'X',
+    keywords: ['gemini','ai','model','research','paper','deepmind','alphafold','robot','agent']
+  },
+  {
+    name: 'X: @sama',
+    url: 'https://nitter.privacydev.net/sama/rss',
+    category: 'X',
+    keywords: ['ai','agi','openai','model','safety','research','future','intelligence','compute']
+  },
+  {
+    name: 'X: @ylecun',
+    url: 'https://nitter.privacydev.net/ylecun/rss',
+    category: 'X',
+    keywords: ['ai','llm','model','learning','neural','open','research','paper','intelligence']
   }
+];
+
+// Nitter fallback instances for X sources
+const NITTER_MIRRORS = [
+  'https://nitter.privacydev.net',
+  'https://nitter.1d4.us',
+  'https://nitter.kavin.rocks'
 ];
 
 let allArticles = [];
@@ -390,17 +486,12 @@ function savePinned(pinned) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(pinned));
 }
 
-function isPinned(link) {
-  return !!loadPinned()[link];
-}
+function isPinned(link) { return !!loadPinned()[link]; }
 
 function togglePin(article) {
   const pinned = loadPinned();
-  if (pinned[article.link]) {
-    delete pinned[article.link];
-  } else {
-    pinned[article.link] = { ...article, pinnedAt: Date.now() };
-  }
+  if (pinned[article.link]) { delete pinned[article.link]; }
+  else { pinned[article.link] = { ...article, pinnedAt: Date.now() }; }
   savePinned(pinned);
   updatePinCount();
   renderCards(allArticles);
@@ -419,16 +510,20 @@ function parseRSS(xmlText) {
   const parser = new DOMParser();
   const doc = parser.parseFromString(xmlText, 'text/xml');
   const items = doc.querySelectorAll('item, entry');
-  return Array.from(items).slice(0, 15).map(item => {
+  return Array.from(items).slice(0, 20).map(item => {
     const get = (sel, attr) => {
       const el = item.querySelector(sel);
       return el ? (attr ? el.getAttribute(attr) : el.textContent.trim()) : '';
     };
     const title = get('title');
-    const link = get('link') || item.querySelector('link')?.getAttribute('href') || '';
+    let link = get('link') || item.querySelector('link')?.getAttribute('href') || '';
+    // Unwrap nitter links to original tweet URLs
+    if (link.includes('nitter') || link.includes('/status/')) {
+      link = link.replace(/https?:\/\/[^/]+\/(\w+)\/status\/(\d+)/, 'https://x.com/$1/status/$2');
+    }
     const pubDate = get('pubDate') || get('published') || get('updated') || '';
     const desc = get('description') || get('summary') || get('content') || '';
-    return { title, link, pubDate, desc: stripHtml(desc).slice(0, 280) };
+    return { title, link, pubDate, desc: stripHtml(desc).slice(0, 300) };
   }).filter(a => a.title && a.link);
 }
 
@@ -460,22 +555,43 @@ function formatDate(str) {
   } catch { return ''; }
 }
 
+// Try fetching X source via multiple nitter mirrors
+async function fetchXSource(source) {
+  const handle = source.url.match(/\/([^/]+)\/rss$/)?.[1] || '';
+  for (const mirror of NITTER_MIRRORS) {
+    try {
+      const url = PROXY + encodeURIComponent(`${mirror}/${handle}/rss`);
+      const resp = await fetch(url, { signal: AbortSignal.timeout(8000) });
+      if (!resp.ok) continue;
+      const json = await resp.json();
+      if (!json.contents || json.contents.length < 50) continue;
+      const articles = parseRSS(json.contents);
+      if (!articles.length) continue;
+      return articles
+        .filter(a => isAiRelated(a, source.keywords))
+        .map(a => ({ ...a, source: source.name, category: 'X' }));
+    } catch { /* try next mirror */ }
+  }
+  throw new Error('All nitter mirrors failed');
+}
+
 async function fetchSource(source) {
+  if (source.category === 'X') return fetchXSource(source);
   const url = PROXY + encodeURIComponent(source.url);
   const resp = await fetch(url, { signal: AbortSignal.timeout(12000) });
   if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
   const json = await resp.json();
   const articles = parseRSS(json.contents || '');
-  return articles
-    .filter(a => isAiRelated(a, source.keywords))
-    .map(a => ({ ...a, source: source.name, category: source.category }));
+  const filtered = source.category === 'Reddit'
+    ? articles  // Reddit posts in an AI subreddit are already relevant
+    : articles.filter(a => isAiRelated(a, source.keywords));
+  return filtered.map(a => ({ ...a, source: source.name, category: source.category }));
 }
 
 // --- Rendering ---
 
-function renderSkeletons(n = 6) {
-  const grid = document.getElementById('newsGrid');
-  grid.innerHTML = Array(n).fill(0).map(() => `
+function renderSkeletons(n = 9) {
+  document.getElementById('newsGrid').innerHTML = Array(n).fill(0).map(() => `
     <div class="skeleton-card">
       <div class="skeleton sk-line" style="width:40%"></div>
       <div class="skeleton sk-title"></div>
@@ -484,13 +600,20 @@ function renderSkeletons(n = 6) {
     </div>`).join('');
 }
 
+function tagClass(cat) {
+  if (cat === 'Reddit') return 'reddit';
+  if (cat === 'X') return 'x';
+  return '';
+}
+
 function cardHtml(a) {
   const pinned = isPinned(a.link);
+  const safeCat = escHtml(a.category || '');
   return `
-    <div class="card${pinned ? ' pinned' : ''}" data-link="${escHtml(a.link)}">
-      <button class="pin-btn" title="${pinned ? 'Unpin' : 'Pin this article'}" onclick="handlePin(event, '${escHtml(a.link)}')">📌</button>
+    <div class="card${pinned ? ' pinned' : ''}" data-cat="${safeCat}">
+      <button class="pin-btn" title="${pinned ? 'Unpin' : 'Pin'}" onclick="handlePin(event,'${escHtml(a.link)}')">📌</button>
       <div class="card-meta">
-        <span class="source-tag">${escHtml(a.source)}</span>
+        <span class="source-tag ${tagClass(a.category)}">${escHtml(a.source)}</span>
         <span class="card-date">${formatDate(a.pubDate)}</span>
       </div>
       <a href="${escHtml(a.link)}" target="_blank" rel="noopener noreferrer" style="text-decoration:none;color:inherit;display:contents;">
@@ -507,21 +630,17 @@ function renderCards(articles) {
   const pinned = loadPinned();
 
   if (activeFilter === 'pinned') {
-    const pinnedList = Object.values(pinned).sort((a, b) => b.pinnedAt - a.pinnedAt);
-    const filtered = pinnedList.filter(a =>
-      !query || (a.title + a.desc + a.source).toLowerCase().includes(query)
-    );
-    if (!filtered.length) {
-      grid.innerHTML = `
-        <div class="empty-state">
-          <svg width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
-            <path d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/>
-          </svg>
-          <p>No pinned articles yet. Click 📌 on any article to pin it.</p>
-        </div>`;
+    const list = Object.values(pinned).sort((a, b) => b.pinnedAt - a.pinnedAt)
+      .filter(a => !query || (a.title + a.desc + a.source).toLowerCase().includes(query));
+    if (!list.length) {
+      grid.innerHTML = `<div class="empty-state">
+        <svg width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+          <path d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/>
+        </svg>
+        <p>No pinned articles yet. Click 📌 on any article to save it.</p></div>`;
       return;
     }
-    grid.innerHTML = filtered.map(cardHtml).join('');
+    grid.innerHTML = list.map(cardHtml).join('');
     return;
   }
 
@@ -532,13 +651,11 @@ function renderCards(articles) {
   });
 
   if (!filtered.length) {
-    grid.innerHTML = `
-      <div class="empty-state">
-        <svg width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
-          <path d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-        </svg>
-        <p>No articles found. Try a different filter or search term.</p>
-      </div>`;
+    grid.innerHTML = `<div class="empty-state">
+      <svg width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+        <path d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+      </svg>
+      <p>No articles found.</p></div>`;
     return;
   }
 
@@ -565,10 +682,8 @@ function handlePin(event, link) {
 
 function escHtml(str) {
   return String(str)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;');
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
 
 function filterCards() { renderCards(allArticles); }
@@ -581,9 +696,7 @@ async function loadNews() {
   btn.disabled = true;
   btn.textContent = '⏳ Loading…';
   renderSkeletons();
-
-  const errorEl = document.querySelector('.error-banner');
-  if (errorEl) errorEl.remove();
+  document.querySelector('.error-banner')?.remove();
 
   const results = await Promise.allSettled(SOURCES.map(fetchSource));
 
@@ -591,7 +704,7 @@ async function loadNews() {
   let errors = 0;
   results.forEach((r, i) => {
     if (r.status === 'fulfilled') articles.push(...r.value);
-    else { errors++; console.warn(`Failed ${SOURCES[i].name}:`, r.reason); }
+    else { errors++; console.warn(`Failed [${SOURCES[i].name}]:`, r.reason?.message); }
   });
 
   articles.sort((a, b) => new Date(b.pubDate) - new Date(a.pubDate));
@@ -606,15 +719,20 @@ async function loadNews() {
 
   renderCards(allArticles);
 
-  const total = allArticles.length;
-  status.textContent = `${total} articles from ${SOURCES.length - errors} sources` +
+  const byCategory = allArticles.reduce((acc, a) => {
+    acc[a.category] = (acc[a.category] || 0) + 1; return acc;
+  }, {});
+  const catSummary = Object.entries(byCategory)
+    .map(([k, v]) => `${k}: ${v}`).join(' · ');
+
+  status.textContent = `${allArticles.length} articles · ${catSummary}` +
     (errors ? ` · ${errors} source${errors > 1 ? 's' : ''} unavailable` : '') +
-    ` · Updated ${new Date().toLocaleTimeString()}`;
+    ` · ${new Date().toLocaleTimeString()}`;
 
   if (errors === SOURCES.length) {
     const banner = document.createElement('div');
     banner.className = 'error-banner';
-    banner.textContent = 'Could not reach any news sources. Please check your connection and try refreshing.';
+    banner.textContent = 'Could not reach any news sources. Please check your connection.';
     document.querySelector('main').prepend(banner);
   }
 
