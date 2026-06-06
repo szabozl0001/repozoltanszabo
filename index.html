@@ -20,7 +20,7 @@
       --pin-color: #f59e0b;
       --pin-glow: rgba(245, 158, 11, 0.2);
       --reddit-color: #ff4500;
-      --x-color: #1d9bf0;
+      --labs-color: #a78bfa;
       --github-color: #58a6ff;
     }
 
@@ -106,12 +106,12 @@
       border-color: var(--reddit-color);
       color: var(--reddit-color);
     }
-    .filter-btn[data-filter="X"] { border-color: var(--x-color); color: var(--x-color); }
-    .filter-btn[data-filter="X"]:hover,
-    .filter-btn[data-filter="X"].active {
-      background: rgba(29,155,240,0.12);
-      border-color: var(--x-color);
-      color: var(--x-color);
+    .filter-btn[data-filter="Labs"] { border-color: var(--labs-color); color: var(--labs-color); }
+    .filter-btn[data-filter="Labs"]:hover,
+    .filter-btn[data-filter="Labs"].active {
+      background: rgba(167,139,250,0.12);
+      border-color: var(--labs-color);
+      color: var(--labs-color);
     }
     .filter-btn[data-filter="GitHub"] { border-color: var(--github-color); color: var(--github-color); }
     .filter-btn[data-filter="GitHub"]:hover,
@@ -218,7 +218,7 @@
     }
     .card.pinned:hover { background: rgba(245,158,11,0.08); }
     .card[data-cat="Reddit"] { border-left: 3px solid var(--reddit-color); }
-    .card[data-cat="X"]      { border-left: 3px solid var(--x-color); }
+    .card[data-cat="Labs"]   { border-left: 3px solid var(--labs-color); }
     .card[data-cat="GitHub"] { border-left: 3px solid var(--github-color); }
 
     .pin-btn {
@@ -261,7 +261,7 @@
       white-space: nowrap;
     }
     .source-tag.reddit { color: var(--reddit-color); border-color: rgba(255,69,0,0.3); }
-    .source-tag.x      { color: var(--x-color);      border-color: rgba(29,155,240,0.3); }
+    .source-tag.labs   { color: var(--labs-color);   border-color: rgba(167,139,250,0.3); }
     .source-tag.github { color: var(--github-color); border-color: rgba(88,166,255,0.3); }
 
     .card-date { color: var(--muted); margin-left: auto; white-space: nowrap; }
@@ -352,7 +352,7 @@
   <button class="filter-btn" data-filter="Industry">Industry</button>
   <button class="filter-btn" data-filter="Policy">Policy</button>
   <button class="filter-btn" data-filter="Reddit">🟠 Reddit</button>
-  <button class="filter-btn" data-filter="X">𝕏 X/Twitter</button>
+  <button class="filter-btn" data-filter="Labs">🔬 AI Labs</button>
   <button class="filter-btn" data-filter="GitHub">⚫ GitHub</button>
   <div class="search-wrapper">
     <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -371,42 +371,34 @@
 const STORAGE_KEY = 'ai-news-pinned';
 
 const SOURCES = [
-  // News
-  { name:'MIT Tech Review', url:'https://www.technologyreview.com/feed/', category:'Research', keywords:['ai','artificial intelligence','machine learning','deep learning','gpt','llm','neural','robot'] },
-  { name:'The Verge',       url:'https://www.theverge.com/rss/index.xml', category:'Industry', keywords:['ai','artificial intelligence','openai','google','anthropic','llm','chatgpt','gemini','claude','deepmind'] },
-  { name:'VentureBeat',     url:'https://venturebeat.com/category/ai/feed/', category:'Industry', keywords:['ai','artificial intelligence','ml','llm','model','neural','robot','automation'] },
-  { name:'Ars Technica',    url:'https://feeds.arstechnica.com/arstechnica/index', category:'Research', keywords:['ai','artificial intelligence','machine learning','gpt','llm','chatbot','generative','neural'] },
-  { name:'TechCrunch',      url:'https://techcrunch.com/feed/', category:'Industry', keywords:['ai','artificial intelligence','openai','anthropic','llm','chatgpt','generative','model'] },
-  { name:'Wired',           url:'https://www.wired.com/feed/rss', category:'Policy', keywords:['ai','artificial intelligence','machine learning','deep learning','regulation','policy','chatbot','llm'] },
+  // News outlets
+  { name:'MIT Tech Review', url:'https://www.technologyreview.com/feed/',            category:'Research', keywords:['ai','artificial intelligence','machine learning','deep learning','gpt','llm','neural','robot'] },
+  { name:'The Verge',       url:'https://www.theverge.com/rss/index.xml',            category:'Industry', keywords:['ai','artificial intelligence','openai','google','anthropic','llm','chatgpt','gemini','claude','deepmind'] },
+  { name:'VentureBeat',     url:'https://venturebeat.com/category/ai/feed/',         category:'Industry', keywords:['ai','artificial intelligence','ml','llm','model','neural','robot','automation'] },
+  { name:'Ars Technica',    url:'https://feeds.arstechnica.com/arstechnica/index',   category:'Research', keywords:['ai','artificial intelligence','machine learning','gpt','llm','chatbot','generative','neural'] },
+  { name:'TechCrunch',      url:'https://techcrunch.com/feed/',                      category:'Industry', keywords:['ai','artificial intelligence','openai','anthropic','llm','chatgpt','generative','model'] },
+  { name:'Wired',           url:'https://www.wired.com/feed/rss',                   category:'Policy',   keywords:['ai','artificial intelligence','machine learning','regulation','policy','chatbot','llm'] },
 
   // GitHub
-  { name:'GitHub Blog',      url:'https://github.blog/feed/',           category:'GitHub', keywords:['ai','copilot','machine learning','llm','model','ml','neural','agent','automation'] },
-  { name:'GitHub Changelog', url:'https://github.blog/changelog/feed/', category:'GitHub', keywords:['ai','copilot','ml','model','code','agent','automation','suggest','completion'] },
+  { name:'GitHub Blog',      url:'https://github.blog/feed/',           category:'GitHub', keywords:['ai','copilot','machine learning','llm','model','agent','automation'] },
+  { name:'GitHub Changelog', url:'https://github.blog/changelog/feed/', category:'GitHub', keywords:['ai','copilot','ml','model','code','agent','suggest','completion'] },
 
-  // Reddit — JSON API (more reliable than RSS through proxies)
-  { name:'r/artificial',      url:'https://www.reddit.com/r/artificial/hot.json?limit=25&raw_json=1',      category:'Reddit', isJson:true },
-  { name:'r/MachineLearning', url:'https://www.reddit.com/r/MachineLearning/hot.json?limit=25&raw_json=1', category:'Reddit', isJson:true },
-  { name:'r/LocalLLaMA',      url:'https://www.reddit.com/r/LocalLLaMA/hot.json?limit=25&raw_json=1',      category:'Reddit', isJson:true },
-  { name:'r/singularity',     url:'https://www.reddit.com/r/singularity/hot.json?limit=25&raw_json=1',     category:'Reddit', isJson:true },
-  { name:'r/ChatGPT',         url:'https://www.reddit.com/r/ChatGPT/hot.json?limit=25&raw_json=1',         category:'Reddit', isJson:true },
+  // Reddit — via rss2json.com (handles CORS reliably)
+  { name:'r/artificial',      url:'https://www.reddit.com/r/artificial/.rss',      category:'Reddit', isReddit:true },
+  { name:'r/MachineLearning', url:'https://www.reddit.com/r/MachineLearning/.rss', category:'Reddit', isReddit:true },
+  { name:'r/LocalLLaMA',      url:'https://www.reddit.com/r/LocalLLaMA/.rss',      category:'Reddit', isReddit:true },
+  { name:'r/singularity',     url:'https://www.reddit.com/r/singularity/.rss',     category:'Reddit', isReddit:true },
+  { name:'r/ChatGPT',         url:'https://www.reddit.com/r/ChatGPT/.rss',         category:'Reddit', isReddit:true },
 
-  // X / Twitter via nitter (handle stored in url field)
-  { name:'X: @OpenAI',        url:'OpenAI',        category:'X', keywords:['ai','model','gpt','sora','dalle','update','research','safety','agi','api','o1','o3'] },
-  { name:'X: @AnthropicAI',   url:'AnthropicAI',   category:'X', keywords:['claude','ai','safety','model','research','alignment','api'] },
-  { name:'X: @GoogleDeepMind',url:'GoogleDeepMind',category:'X', keywords:['gemini','ai','model','research','paper','deepmind','robot','agent'] },
-  { name:'X: @sama',          url:'sama',           category:'X', keywords:['ai','agi','openai','model','safety','research','intelligence'] },
-  { name:'X: @ylecun',        url:'ylecun',         category:'X', keywords:['ai','llm','model','learning','neural','open','research','paper'] },
+  // AI Labs — official blogs with real RSS feeds
+  { name:'HuggingFace Blog', url:'https://huggingface.co/blog/feed.xml',                      category:'Labs', keywords:['model','ai','llm','transformer','dataset','fine','train','release','open'] },
+  { name:'OpenAI News',      url:'https://openai.com/news/rss.xml',                           category:'Labs', keywords:['gpt','model','ai','research','safety','sora','dalle','api','agent'] },
+  { name:'Google AI Blog',   url:'https://ai.googleblog.com/feeds/posts/default',             category:'Labs', keywords:['ai','model','gemini','deepmind','research','neural','language','vision'] },
+  { name:'arXiv CS.AI',      url:'https://rss.arxiv.org/rss/cs.AI',                          category:'Labs', keywords:['language','model','learning','neural','transformer','llm','agent','reasoning'] },
+  { name:'BAIR Blog',        url:'https://bair.berkeley.edu/blog/feed.xml',                   category:'Labs', keywords:['ai','robot','model','learning','language','vision','reinforcement'] },
 ];
 
-// Nitter mirrors tried in order for X/Twitter
-const NITTER_MIRRORS = [
-  'https://xcancel.com',
-  'https://nitter.poast.org',
-  'https://lightbrd.com',
-  'https://nitter.privacydev.net',
-  'https://bird.trom.tf',
-  'https://nitter.net'
-];
+const RSS2JSON = 'https://api.rss2json.com/v1/api.json?rss_url=';
 
 let allArticles = [];
 let activeFilter = 'all';
@@ -427,34 +419,23 @@ function updatePinCount() {
   el.textContent = n; el.style.display = n ? '' : 'none';
 }
 
-// --- Proxy fetch: tries allorigins then corsproxy.io ---
-async function fetchContent(url) {
-  // allorigins returns { contents: "..." }
-  try {
-    const r = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(url)}`, { signal: AbortSignal.timeout(12000) });
-    if (r.ok) {
-      const j = await r.json();
-      const c = j.contents || '';
-      if (c.length > 80 && !isBlockPage(c)) return c;
-    }
-  } catch {}
-  // corsproxy.io returns raw content
-  try {
-    const r = await fetch(`https://corsproxy.io/?url=${encodeURIComponent(url)}`, { signal: AbortSignal.timeout(12000) });
-    if (r.ok) {
-      const t = await r.text();
-      if (t.length > 80 && !isBlockPage(t)) return t;
-    }
-  } catch {}
-  throw new Error(`proxy failed: ${url}`);
+// --- Fetch via allorigins proxy (standard RSS sources) ---
+async function fetchViaProxy(url) {
+  const r = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(url)}`, { signal: AbortSignal.timeout(14000) });
+  if (!r.ok) throw new Error(`allorigins ${r.status}`);
+  const j = await r.json();
+  const c = j.contents || '';
+  if (c.length < 80) throw new Error('empty response');
+  return c;
 }
 
-function isBlockPage(t) {
-  // Detect Cloudflare "Just a moment", login walls, generic HTML errors
-  return (t.includes('Just a moment') || t.includes('cf-browser-verification') ||
-          t.includes('log in') || t.includes('Login required')) ||
-         (t.trimStart().startsWith('<html') && !t.includes('<?xml') &&
-          !t.includes('<rss') && !t.includes('<feed') && !t.includes('"kind"'));
+// --- Fetch Reddit via rss2json.com (handles Reddit's CORS restrictions) ---
+async function fetchViaRss2Json(rssUrl) {
+  const r = await fetch(RSS2JSON + encodeURIComponent(rssUrl), { signal: AbortSignal.timeout(14000) });
+  if (!r.ok) throw new Error(`rss2json ${r.status}`);
+  const j = await r.json();
+  if (j.status !== 'ok') throw new Error(`rss2json status: ${j.status}`);
+  return j.items || [];
 }
 
 // --- Parsers ---
@@ -463,30 +444,20 @@ function parseRSS(xml) {
   return Array.from(doc.querySelectorAll('item, entry')).slice(0, 20).map(item => {
     const get = sel => { const el = item.querySelector(sel); return el ? el.textContent.trim() : ''; };
     const title = get('title');
-    let link = get('link');
-    if (!link) link = item.querySelector('link')?.getAttribute('href') || '';
-    // Normalise nitter/xcancel links → x.com
-    link = link.replace(/https?:\/\/(?:[\w.-]*nitter[\w.-]*|xcancel\.com)\/(\w+)\/status\/(\d+).*/,
-                        'https://x.com/$1/status/$2');
+    let link = get('link') || item.querySelector('link')?.getAttribute('href') || '';
     const pubDate = get('pubDate') || get('published') || get('updated') || '';
     const desc = get('description') || get('summary') || get('content') || '';
     return { title, link, pubDate, desc: stripHtml(desc).slice(0, 300) };
   }).filter(a => a.title && a.link);
 }
 
-function parseRedditJson(text) {
-  try {
-    const data = JSON.parse(text);
-    return (data?.data?.children || [])
-      .filter(p => p.kind === 't3' && !p.data.stickied)
-      .map(p => p.data)
-      .map(d => ({
-        title: d.title,
-        link: 'https://www.reddit.com' + d.permalink,
-        pubDate: new Date(d.created_utc * 1000).toISOString(),
-        desc: (d.selftext || '').slice(0, 300)
-      })).filter(a => a.title);
-  } catch { return []; }
+function parseRss2JsonItems(items) {
+  return items.map(item => ({
+    title: item.title || '',
+    link: item.link || item.guid || '',
+    pubDate: item.pubDate || '',
+    desc: stripHtml(item.description || item.content || '').slice(0, 300)
+  })).filter(a => a.title && a.link);
 }
 
 function stripHtml(h) { const d = document.createElement('div'); d.innerHTML = h; return d.textContent || ''; }
@@ -504,26 +475,14 @@ function formatDate(str) {
 }
 
 // --- Fetch sources ---
-async function fetchXSource(source) {
-  for (const mirror of NITTER_MIRRORS) {
-    try {
-      const text = await fetchContent(`${mirror}/${source.url}/rss`);
-      if (!text.includes('<rss') && !text.includes('<feed')) continue;
-      const articles = parseRSS(text);
-      if (!articles.length) continue;
-      return articles.filter(a => isAiRelated(a, source.keywords))
-                     .map(a => ({ ...a, source: source.name, category: 'X' }));
-    } catch {}
-  }
-  throw new Error(`X @${source.url} unavailable`);
-}
-
 async function fetchSource(source) {
-  if (source.category === 'X') return fetchXSource(source);
-  const text = await fetchContent(source.url);
-  if (source.isJson) {
-    return parseRedditJson(text).map(a => ({ ...a, source: source.name, category: source.category }));
+  if (source.isReddit) {
+    // Reddit: use rss2json.com which handles Reddit's CORS restrictions
+    const items = await fetchViaRss2Json(source.url);
+    return parseRss2JsonItems(items).map(a => ({ ...a, source: source.name, category: 'Reddit' }));
   }
+  // All other sources: use allorigins proxy
+  const text = await fetchViaProxy(source.url);
   const articles = parseRSS(text);
   const filtered = articles.filter(a => isAiRelated(a, source.keywords));
   return filtered.map(a => ({ ...a, source: source.name, category: source.category }));
@@ -540,7 +499,7 @@ function renderSkeletons(n = 9) {
     </div>`).join('');
 }
 
-function tagClass(cat) { return { Reddit:'reddit', X:'x', GitHub:'github' }[cat] || ''; }
+function tagClass(cat) { return { Reddit:'reddit', Labs:'labs', GitHub:'github' }[cat] || ''; }
 
 function cardHtml(a) {
   const pinned = isPinned(a.link);
