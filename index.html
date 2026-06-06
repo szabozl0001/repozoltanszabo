@@ -368,258 +368,168 @@
 </main>
 
 <script>
-const PROXY = 'https://api.allorigins.win/get?url=';
 const STORAGE_KEY = 'ai-news-pinned';
 
-// --- News sources ---
 const SOURCES = [
-  // Established news
-  {
-    name: 'MIT Tech Review',
-    url: 'https://www.technologyreview.com/feed/',
-    category: 'Research',
-    keywords: ['ai','artificial intelligence','machine learning','deep learning','gpt','llm','neural','robot']
-  },
-  {
-    name: 'The Verge',
-    url: 'https://www.theverge.com/rss/index.xml',
-    category: 'Industry',
-    keywords: ['ai','artificial intelligence','openai','google','anthropic','llm','chatgpt','gemini','claude','deepmind']
-  },
-  {
-    name: 'VentureBeat',
-    url: 'https://venturebeat.com/category/ai/feed/',
-    category: 'Industry',
-    keywords: ['ai','artificial intelligence','ml','llm','model','neural','robot','automation']
-  },
-  {
-    name: 'Ars Technica',
-    url: 'https://feeds.arstechnica.com/arstechnica/index',
-    category: 'Research',
-    keywords: ['ai','artificial intelligence','machine learning','gpt','llm','chatbot','generative','neural']
-  },
-  {
-    name: 'TechCrunch',
-    url: 'https://techcrunch.com/feed/',
-    category: 'Industry',
-    keywords: ['ai','artificial intelligence','openai','anthropic','llm','chatgpt','generative','model']
-  },
-  {
-    name: 'Wired',
-    url: 'https://www.wired.com/feed/rss',
-    category: 'Policy',
-    keywords: ['ai','artificial intelligence','machine learning','deep learning','regulation','policy','chatbot','llm']
-  },
-
-  // Reddit subreddits
-  {
-    name: 'r/artificial',
-    url: 'https://www.reddit.com/r/artificial/.rss?limit=25',
-    category: 'Reddit',
-    keywords: ['ai','artificial intelligence','ml','llm','chatbot','openai','anthropic','gemini','gpt','neural','robot','agent']
-  },
-  {
-    name: 'r/MachineLearning',
-    url: 'https://www.reddit.com/r/MachineLearning/.rss?limit=25',
-    category: 'Reddit',
-    keywords: ['model','learning','neural','transformer','training','inference','paper','benchmark','dataset','llm','gpt','diffusion']
-  },
-  {
-    name: 'r/LocalLLaMA',
-    url: 'https://www.reddit.com/r/LocalLLaMA/.rss?limit=25',
-    category: 'Reddit',
-    keywords: ['llm','model','llama','mistral','phi','gemma','quantiz','gpu','inference','fine','lora','gguf','ollama','local']
-  },
-  {
-    name: 'r/singularity',
-    url: 'https://www.reddit.com/r/singularity/.rss?limit=25',
-    category: 'Reddit',
-    keywords: ['ai','agi','artificial','openai','anthropic','google','deepmind','robot','model','gpt','claude','gemini']
-  },
-  {
-    name: 'r/ChatGPT',
-    url: 'https://www.reddit.com/r/ChatGPT/.rss?limit=25',
-    category: 'Reddit',
-    keywords: ['chatgpt','gpt','openai','plugin','feature','update','model','sora','dalle','image','voice','custom']
-  },
+  // News
+  { name:'MIT Tech Review', url:'https://www.technologyreview.com/feed/', category:'Research', keywords:['ai','artificial intelligence','machine learning','deep learning','gpt','llm','neural','robot'] },
+  { name:'The Verge',       url:'https://www.theverge.com/rss/index.xml', category:'Industry', keywords:['ai','artificial intelligence','openai','google','anthropic','llm','chatgpt','gemini','claude','deepmind'] },
+  { name:'VentureBeat',     url:'https://venturebeat.com/category/ai/feed/', category:'Industry', keywords:['ai','artificial intelligence','ml','llm','model','neural','robot','automation'] },
+  { name:'Ars Technica',    url:'https://feeds.arstechnica.com/arstechnica/index', category:'Research', keywords:['ai','artificial intelligence','machine learning','gpt','llm','chatbot','generative','neural'] },
+  { name:'TechCrunch',      url:'https://techcrunch.com/feed/', category:'Industry', keywords:['ai','artificial intelligence','openai','anthropic','llm','chatgpt','generative','model'] },
+  { name:'Wired',           url:'https://www.wired.com/feed/rss', category:'Policy', keywords:['ai','artificial intelligence','machine learning','deep learning','regulation','policy','chatbot','llm'] },
 
   // GitHub
-  {
-    name: 'GitHub Blog',
-    url: 'https://github.blog/feed/',
-    category: 'GitHub',
-    keywords: ['ai','artificial intelligence','copilot','machine learning','llm','model','ml','neural','agent','automation','code']
-  },
-  {
-    name: 'GitHub Changelog',
-    url: 'https://github.blog/changelog/feed/',
-    category: 'GitHub',
-    keywords: ['ai','copilot','ml','model','code','agent','automation','suggest','completion','review']
-  },
+  { name:'GitHub Blog',      url:'https://github.blog/feed/',           category:'GitHub', keywords:['ai','copilot','machine learning','llm','model','ml','neural','agent','automation'] },
+  { name:'GitHub Changelog', url:'https://github.blog/changelog/feed/', category:'GitHub', keywords:['ai','copilot','ml','model','code','agent','automation','suggest','completion'] },
 
-  // X / Twitter via nitter — tries multiple mirrors automatically
-  {
-    name: 'X: @OpenAI',
-    url: 'OpenAI',
-    category: 'X',
-    keywords: ['ai','model','gpt','sora','dalle','update','launch','research','safety','agi','api','feature','o1','o3']
-  },
-  {
-    name: 'X: @AnthropicAI',
-    url: 'AnthropicAI',
-    category: 'X',
-    keywords: ['claude','ai','safety','model','constitutional','research','alignment','api','feature']
-  },
-  {
-    name: 'X: @GoogleDeepMind',
-    url: 'GoogleDeepMind',
-    category: 'X',
-    keywords: ['gemini','ai','model','research','paper','deepmind','alphafold','robot','agent']
-  },
-  {
-    name: 'X: @sama',
-    url: 'sama',
-    category: 'X',
-    keywords: ['ai','agi','openai','model','safety','research','future','intelligence','compute']
-  },
-  {
-    name: 'X: @ylecun',
-    url: 'ylecun',
-    category: 'X',
-    keywords: ['ai','llm','model','learning','neural','open','research','paper','intelligence']
-  }
+  // Reddit — JSON API (more reliable than RSS through proxies)
+  { name:'r/artificial',      url:'https://www.reddit.com/r/artificial/hot.json?limit=25&raw_json=1',      category:'Reddit', isJson:true },
+  { name:'r/MachineLearning', url:'https://www.reddit.com/r/MachineLearning/hot.json?limit=25&raw_json=1', category:'Reddit', isJson:true },
+  { name:'r/LocalLLaMA',      url:'https://www.reddit.com/r/LocalLLaMA/hot.json?limit=25&raw_json=1',      category:'Reddit', isJson:true },
+  { name:'r/singularity',     url:'https://www.reddit.com/r/singularity/hot.json?limit=25&raw_json=1',     category:'Reddit', isJson:true },
+  { name:'r/ChatGPT',         url:'https://www.reddit.com/r/ChatGPT/hot.json?limit=25&raw_json=1',         category:'Reddit', isJson:true },
+
+  // X / Twitter via nitter (handle stored in url field)
+  { name:'X: @OpenAI',        url:'OpenAI',        category:'X', keywords:['ai','model','gpt','sora','dalle','update','research','safety','agi','api','o1','o3'] },
+  { name:'X: @AnthropicAI',   url:'AnthropicAI',   category:'X', keywords:['claude','ai','safety','model','research','alignment','api'] },
+  { name:'X: @GoogleDeepMind',url:'GoogleDeepMind',category:'X', keywords:['gemini','ai','model','research','paper','deepmind','robot','agent'] },
+  { name:'X: @sama',          url:'sama',           category:'X', keywords:['ai','agi','openai','model','safety','research','intelligence'] },
+  { name:'X: @ylecun',        url:'ylecun',         category:'X', keywords:['ai','llm','model','learning','neural','open','research','paper'] },
 ];
 
-// Nitter fallback instances — tried in order, first working one is used
+// Nitter mirrors tried in order for X/Twitter
 const NITTER_MIRRORS = [
   'https://xcancel.com',
   'https://nitter.poast.org',
   'https://lightbrd.com',
+  'https://nitter.privacydev.net',
   'https://bird.trom.tf',
-  'https://nitter.privacydev.net'
+  'https://nitter.net'
 ];
 
 let allArticles = [];
 let activeFilter = 'all';
 
 // --- Pinned storage ---
-
-function loadPinned() {
-  try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}'); }
-  catch { return {}; }
-}
-
-function savePinned(pinned) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(pinned));
-}
-
+function loadPinned() { try { return JSON.parse(localStorage.getItem(STORAGE_KEY)||'{}'); } catch { return {}; } }
+function savePinned(p) { localStorage.setItem(STORAGE_KEY, JSON.stringify(p)); }
 function isPinned(link) { return !!loadPinned()[link]; }
-
 function togglePin(article) {
-  const pinned = loadPinned();
-  if (pinned[article.link]) { delete pinned[article.link]; }
-  else { pinned[article.link] = { ...article, pinnedAt: Date.now() }; }
-  savePinned(pinned);
-  updatePinCount();
-  renderCards(allArticles);
+  const p = loadPinned();
+  if (p[article.link]) delete p[article.link];
+  else p[article.link] = { ...article, pinnedAt: Date.now() };
+  savePinned(p); updatePinCount(); renderCards(allArticles);
 }
-
 function updatePinCount() {
-  const count = Object.keys(loadPinned()).length;
+  const n = Object.keys(loadPinned()).length;
   const el = document.getElementById('pinCount');
-  if (count > 0) { el.textContent = count; el.style.display = ''; }
-  else { el.style.display = 'none'; }
+  el.textContent = n; el.style.display = n ? '' : 'none';
 }
 
-// --- RSS parsing ---
-
-function parseRSS(xmlText) {
-  const parser = new DOMParser();
-  const doc = parser.parseFromString(xmlText, 'text/xml');
-  const items = doc.querySelectorAll('item, entry');
-  return Array.from(items).slice(0, 20).map(item => {
-    const get = (sel, attr) => {
-      const el = item.querySelector(sel);
-      return el ? (attr ? el.getAttribute(attr) : el.textContent.trim()) : '';
-    };
-    const title = get('title');
-    let link = get('link') || item.querySelector('link')?.getAttribute('href') || '';
-    // Unwrap nitter links to original tweet URLs
-    if (link.includes('nitter') || link.includes('/status/')) {
-      link = link.replace(/https?:\/\/[^/]+\/(\w+)\/status\/(\d+)/, 'https://x.com/$1/status/$2');
+// --- Proxy fetch: tries allorigins then corsproxy.io ---
+async function fetchContent(url) {
+  // allorigins returns { contents: "..." }
+  try {
+    const r = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(url)}`, { signal: AbortSignal.timeout(12000) });
+    if (r.ok) {
+      const j = await r.json();
+      const c = j.contents || '';
+      if (c.length > 80 && !isBlockPage(c)) return c;
     }
+  } catch {}
+  // corsproxy.io returns raw content
+  try {
+    const r = await fetch(`https://corsproxy.io/?url=${encodeURIComponent(url)}`, { signal: AbortSignal.timeout(12000) });
+    if (r.ok) {
+      const t = await r.text();
+      if (t.length > 80 && !isBlockPage(t)) return t;
+    }
+  } catch {}
+  throw new Error(`proxy failed: ${url}`);
+}
+
+function isBlockPage(t) {
+  // Detect Cloudflare "Just a moment", login walls, generic HTML errors
+  return (t.includes('Just a moment') || t.includes('cf-browser-verification') ||
+          t.includes('log in') || t.includes('Login required')) ||
+         (t.trimStart().startsWith('<html') && !t.includes('<?xml') &&
+          !t.includes('<rss') && !t.includes('<feed') && !t.includes('"kind"'));
+}
+
+// --- Parsers ---
+function parseRSS(xml) {
+  const doc = new DOMParser().parseFromString(xml, 'text/xml');
+  return Array.from(doc.querySelectorAll('item, entry')).slice(0, 20).map(item => {
+    const get = sel => { const el = item.querySelector(sel); return el ? el.textContent.trim() : ''; };
+    const title = get('title');
+    let link = get('link');
+    if (!link) link = item.querySelector('link')?.getAttribute('href') || '';
+    // Normalise nitter/xcancel links → x.com
+    link = link.replace(/https?:\/\/(?:[\w.-]*nitter[\w.-]*|xcancel\.com)\/(\w+)\/status\/(\d+).*/,
+                        'https://x.com/$1/status/$2');
     const pubDate = get('pubDate') || get('published') || get('updated') || '';
     const desc = get('description') || get('summary') || get('content') || '';
     return { title, link, pubDate, desc: stripHtml(desc).slice(0, 300) };
   }).filter(a => a.title && a.link);
 }
 
-function stripHtml(html) {
-  const tmp = document.createElement('div');
-  tmp.innerHTML = html;
-  return tmp.textContent || tmp.innerText || '';
+function parseRedditJson(text) {
+  try {
+    const data = JSON.parse(text);
+    return (data?.data?.children || [])
+      .filter(p => p.kind === 't3' && !p.data.stickied)
+      .map(p => p.data)
+      .map(d => ({
+        title: d.title,
+        link: 'https://www.reddit.com' + d.permalink,
+        pubDate: new Date(d.created_utc * 1000).toISOString(),
+        desc: (d.selftext || '').slice(0, 300)
+      })).filter(a => a.title);
+  } catch { return []; }
 }
 
-function isAiRelated(article, keywords) {
-  const text = (article.title + ' ' + article.desc).toLowerCase();
-  return keywords.some(k => text.includes(k));
-}
-
+function stripHtml(h) { const d = document.createElement('div'); d.innerHTML = h; return d.textContent || ''; }
+function isAiRelated(a, kw) { const t = (a.title + ' ' + a.desc).toLowerCase(); return kw.some(k => t.includes(k)); }
 function formatDate(str) {
   if (!str) return '';
   try {
-    const d = new Date(str);
-    if (isNaN(d)) return '';
-    const now = new Date();
-    const diff = now - d;
-    const mins = Math.floor(diff / 60000);
-    const hours = Math.floor(diff / 3600000);
-    const days = Math.floor(diff / 86400000);
-    if (mins < 60) return `${mins}m ago`;
-    if (hours < 24) return `${hours}h ago`;
-    if (days < 7) return `${days}d ago`;
-    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    const d = new Date(str), now = new Date(), diff = now - d;
+    const m = diff/60000|0, h = diff/3600000|0, dy = diff/86400000|0;
+    if (m < 60) return m + 'm ago';
+    if (h < 24) return h + 'h ago';
+    if (dy < 7) return dy + 'd ago';
+    return d.toLocaleDateString('en-US', { month:'short', day:'numeric' });
   } catch { return ''; }
 }
 
-// Try fetching X source via multiple nitter mirrors
+// --- Fetch sources ---
 async function fetchXSource(source) {
-  const handle = source.url; // url field holds the Twitter handle directly
   for (const mirror of NITTER_MIRRORS) {
     try {
-      const rssUrl = `${mirror}/${handle}/rss`;
-      const url = PROXY + encodeURIComponent(rssUrl);
-      const resp = await fetch(url, { signal: AbortSignal.timeout(10000) });
-      if (!resp.ok) continue;
-      const json = await resp.json();
-      if (!json.contents || json.contents.length < 100) continue;
-      // Reject HTML error pages from nitter
-      if (json.contents.includes('<html') && !json.contents.includes('<rss')) continue;
-      const articles = parseRSS(json.contents);
+      const text = await fetchContent(`${mirror}/${source.url}/rss`);
+      if (!text.includes('<rss') && !text.includes('<feed')) continue;
+      const articles = parseRSS(text);
       if (!articles.length) continue;
-      return articles
-        .filter(a => isAiRelated(a, source.keywords))
-        .map(a => ({ ...a, source: source.name, category: 'X' }));
-    } catch { /* try next mirror */ }
+      return articles.filter(a => isAiRelated(a, source.keywords))
+                     .map(a => ({ ...a, source: source.name, category: 'X' }));
+    } catch {}
   }
-  throw new Error(`No nitter mirror responded for @${handle}`);
+  throw new Error(`X @${source.url} unavailable`);
 }
 
 async function fetchSource(source) {
   if (source.category === 'X') return fetchXSource(source);
-  const url = PROXY + encodeURIComponent(source.url);
-  const resp = await fetch(url, { signal: AbortSignal.timeout(12000) });
-  if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-  const json = await resp.json();
-  const articles = parseRSS(json.contents || '');
-  const filtered = source.category === 'Reddit'
-    ? articles  // Reddit posts in an AI subreddit are already relevant
-    : articles.filter(a => isAiRelated(a, source.keywords));
+  const text = await fetchContent(source.url);
+  if (source.isJson) {
+    return parseRedditJson(text).map(a => ({ ...a, source: source.name, category: source.category }));
+  }
+  const articles = parseRSS(text);
+  const filtered = articles.filter(a => isAiRelated(a, source.keywords));
   return filtered.map(a => ({ ...a, source: source.name, category: source.category }));
 }
 
 // --- Rendering ---
-
 function renderSkeletons(n = 9) {
   document.getElementById('newsGrid').innerHTML = Array(n).fill(0).map(() => `
     <div class="skeleton-card">
@@ -630,26 +540,20 @@ function renderSkeletons(n = 9) {
     </div>`).join('');
 }
 
-function tagClass(cat) {
-  if (cat === 'Reddit') return 'reddit';
-  if (cat === 'X') return 'x';
-  if (cat === 'GitHub') return 'github';
-  return '';
-}
+function tagClass(cat) { return { Reddit:'reddit', X:'x', GitHub:'github' }[cat] || ''; }
 
 function cardHtml(a) {
   const pinned = isPinned(a.link);
-  const safeCat = escHtml(a.category || '');
   return `
-    <div class="card${pinned ? ' pinned' : ''}" data-cat="${safeCat}">
-      <button class="pin-btn" title="${pinned ? 'Unpin' : 'Pin'}" onclick="handlePin(event,'${escHtml(a.link)}')">📌</button>
+    <div class="card${pinned?' pinned':''}" data-cat="${escHtml(a.category||'')}">
+      <button class="pin-btn" title="${pinned?'Unpin':'Pin'}" onclick="handlePin(event,'${escHtml(a.link)}')">📌</button>
       <div class="card-meta">
         <span class="source-tag ${tagClass(a.category)}">${escHtml(a.source)}</span>
         <span class="card-date">${formatDate(a.pubDate)}</span>
       </div>
       <a href="${escHtml(a.link)}" target="_blank" rel="noopener noreferrer" style="text-decoration:none;color:inherit;display:contents;">
         <div class="card-title">${escHtml(a.title)}</div>
-        ${a.desc ? `<div class="card-desc">${escHtml(a.desc)}</div>` : ''}
+        ${a.desc?`<div class="card-desc">${escHtml(a.desc)}</div>`:''}
         <div class="card-footer">Read article →</div>
       </a>
     </div>`;
@@ -661,114 +565,81 @@ function renderCards(articles) {
   const pinned = loadPinned();
 
   if (activeFilter === 'pinned') {
-    const list = Object.values(pinned).sort((a, b) => b.pinnedAt - a.pinnedAt)
-      .filter(a => !query || (a.title + a.desc + a.source).toLowerCase().includes(query));
-    if (!list.length) {
-      grid.innerHTML = `<div class="empty-state">
-        <svg width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
-          <path d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/>
-        </svg>
-        <p>No pinned articles yet. Click 📌 on any article to save it.</p></div>`;
-      return;
-    }
-    grid.innerHTML = list.map(cardHtml).join('');
+    const list = Object.values(pinned).sort((a,b) => b.pinnedAt - a.pinnedAt)
+      .filter(a => !query || (a.title+a.desc+a.source).toLowerCase().includes(query));
+    grid.innerHTML = list.length ? list.map(cardHtml).join('') :
+      `<div class="empty-state"><svg width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/></svg><p>No pinned articles yet. Click 📌 to save one.</p></div>`;
     return;
   }
 
   const filtered = articles.filter(a => {
-    const matchFilter = activeFilter === 'all' || a.category === activeFilter;
-    const matchSearch = !query || (a.title + a.desc + a.source).toLowerCase().includes(query);
-    return matchFilter && matchSearch;
+    const mf = activeFilter === 'all' || a.category === activeFilter;
+    const ms = !query || (a.title+a.desc+a.source).toLowerCase().includes(query);
+    return mf && ms;
   });
 
   if (!filtered.length) {
-    grid.innerHTML = `<div class="empty-state">
-      <svg width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
-        <path d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-      </svg>
-      <p>No articles found.</p></div>`;
+    grid.innerHTML = `<div class="empty-state"><svg width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg><p>No articles found.</p></div>`;
     return;
   }
 
-  const pinnedInView = filtered.filter(a => pinned[a.link]);
+  const pv = filtered.filter(a => pinned[a.link]);
   const rest = filtered.filter(a => !pinned[a.link]);
-
   let html = '';
-  if (pinnedInView.length) {
+  if (pv.length) {
     html += `<div class="section-label pinned-label" style="grid-column:1/-1">📌 Pinned</div>`;
-    html += pinnedInView.map(cardHtml).join('');
+    html += pv.map(cardHtml).join('');
     if (rest.length) html += `<div class="section-label" style="grid-column:1/-1">Latest</div>`;
   }
-  html += rest.map(cardHtml).join('');
-  grid.innerHTML = html;
+  grid.innerHTML = html + rest.map(cardHtml).join('');
 }
 
-function handlePin(event, link) {
-  event.preventDefault();
-  event.stopPropagation();
-  const article = allArticles.find(a => a.link === link)
-    || Object.values(loadPinned()).find(a => a.link === link);
-  if (article) togglePin(article);
+function handlePin(e, link) {
+  e.preventDefault(); e.stopPropagation();
+  const a = allArticles.find(x => x.link === link) || Object.values(loadPinned()).find(x => x.link === link);
+  if (a) togglePin(a);
 }
 
-function escHtml(str) {
-  return String(str)
-    .replace(/&/g, '&amp;').replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
 function filterCards() { renderCards(allArticles); }
 
-// --- Load news ---
-
 async function loadNews() {
   const btn = document.getElementById('refreshBtn');
   const status = document.getElementById('statusBar');
-  btn.disabled = true;
-  btn.textContent = '⏳ Loading…';
+  btn.disabled = true; btn.textContent = '⏳ Loading…';
   renderSkeletons();
   document.querySelector('.error-banner')?.remove();
 
   const results = await Promise.allSettled(SOURCES.map(fetchSource));
-
-  let articles = [];
-  let errors = 0;
+  let articles = [], errors = 0;
   results.forEach((r, i) => {
     if (r.status === 'fulfilled') articles.push(...r.value);
-    else { errors++; console.warn(`Failed [${SOURCES[i].name}]:`, r.reason?.message); }
+    else { errors++; console.warn(`[${SOURCES[i].name}]`, r.reason?.message); }
   });
 
   articles.sort((a, b) => new Date(b.pubDate) - new Date(a.pubDate));
-
   const seen = new Set();
   allArticles = articles.filter(a => {
-    const key = a.title.toLowerCase().replace(/\s+/g, ' ').slice(0, 60);
-    if (seen.has(key)) return false;
-    seen.add(key);
-    return true;
+    const k = a.title.toLowerCase().replace(/\s+/g,' ').slice(0,60);
+    return seen.has(k) ? false : (seen.add(k), true);
   });
 
   renderCards(allArticles);
 
-  const byCategory = allArticles.reduce((acc, a) => {
-    acc[a.category] = (acc[a.category] || 0) + 1; return acc;
-  }, {});
-  const catSummary = Object.entries(byCategory)
-    .map(([k, v]) => `${k}: ${v}`).join(' · ');
+  const byCat = allArticles.reduce((acc,a) => { acc[a.category]=(acc[a.category]||0)+1; return acc; }, {});
+  const summary = Object.entries(byCat).map(([k,v]) => `${k}:${v}`).join(' · ');
+  status.textContent = `${allArticles.length} articles · ${summary}${errors?` · ${errors} unavailable`:''} · ${new Date().toLocaleTimeString()}`;
 
-  status.textContent = `${allArticles.length} articles · ${catSummary}` +
-    (errors ? ` · ${errors} source${errors > 1 ? 's' : ''} unavailable` : '') +
-    ` · ${new Date().toLocaleTimeString()}`;
-
-  if (errors === SOURCES.length) {
-    const banner = document.createElement('div');
-    banner.className = 'error-banner';
-    banner.textContent = 'Could not reach any news sources. Please check your connection.';
-    document.querySelector('main').prepend(banner);
+  if (!allArticles.length) {
+    const b = document.createElement('div'); b.className = 'error-banner';
+    b.textContent = 'Could not load any articles. Check your connection and try refreshing.';
+    document.querySelector('main').prepend(b);
   }
 
-  btn.disabled = false;
-  btn.textContent = '↻ Refresh';
+  btn.disabled = false; btn.textContent = '↻ Refresh';
 }
 
 document.querySelectorAll('.filter-btn').forEach(btn => {
