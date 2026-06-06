@@ -69,12 +69,20 @@
     .refresh-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
     .controls {
-      padding: 1rem 2rem;
+      padding: 0.75rem 2rem;
       display: flex;
+      flex-direction: column;
       gap: 0.6rem;
-      flex-wrap: wrap;
-      align-items: center;
     }
+    .filter-row {
+      display: flex;
+      gap: 0.5rem;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+      padding-bottom: 2px;
+    }
+    .filter-row::-webkit-scrollbar { display: none; }
 
     .filter-btn {
       background: var(--surface);
@@ -137,7 +145,6 @@
     }
 
     .search-wrapper {
-      margin-left: auto;
       position: relative;
     }
     .search-wrapper svg {
@@ -155,7 +162,7 @@
       padding: 0.45rem 0.75rem 0.45rem 2.2rem;
       border-radius: 8px;
       font-size: 0.9rem;
-      width: 220px;
+      width: 100%;
       transition: border-color 0.2s;
       outline: none;
     }
@@ -332,8 +339,8 @@
 
     @media (max-width: 600px) {
       header, .controls, main { padding-left: 1rem; padding-right: 1rem; }
+      .controls { padding-top: 0.6rem; padding-bottom: 0.6rem; }
       #newsGrid { grid-template-columns: 1fr; }
-      .search-wrapper { margin-left: 0; width: 100%; }
       #searchInput { width: 100%; }
     }
   </style>
@@ -346,14 +353,16 @@
 </header>
 
 <div class="controls">
-  <button class="filter-btn active" data-filter="all">All</button>
-  <button class="filter-btn" data-filter="pinned">📌 Pinned<span class="pin-count" id="pinCount" style="display:none"></span></button>
-  <button class="filter-btn" data-filter="Research">Research</button>
-  <button class="filter-btn" data-filter="Industry">Industry</button>
-  <button class="filter-btn" data-filter="Policy">Policy</button>
-  <button class="filter-btn" data-filter="Reddit">🟠 Reddit</button>
-  <button class="filter-btn" data-filter="Labs">🔬 AI Labs</button>
-  <button class="filter-btn" data-filter="GitHub">⚫ GitHub</button>
+  <div class="filter-row">
+    <button class="filter-btn active" data-filter="all">All</button>
+    <button class="filter-btn" data-filter="pinned">📌 Pinned<span class="pin-count" id="pinCount" style="display:none"></span></button>
+    <button class="filter-btn" data-filter="Research">Research</button>
+    <button class="filter-btn" data-filter="Industry">Industry</button>
+    <button class="filter-btn" data-filter="Policy">Policy</button>
+    <button class="filter-btn" data-filter="Reddit">🟠 Reddit</button>
+    <button class="filter-btn" data-filter="Labs">🔬 AI Labs</button>
+    <button class="filter-btn" data-filter="GitHub">⚫ GitHub</button>
+  </div>
   <div class="search-wrapper">
     <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
       <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
