@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Workspace Tool</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0f1117;
+      --surface: #1a1d27;
+      --border: #2a2d3e;
+      --accent: #6c63ff;
+      --accent-glow: rgba(108,99,255,0.2);
+      --text: #e8eaf0;
+      --muted: #8b8fa8;
+      --green: #34d399;
+      --red: #f87171;
+      --sheets-color: #34a853;
+      --docs-color: #4285f4;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      min-height: 100vh;
+    }
+
+    header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 1rem 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .logo {
+      font-size: 1.2rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, #6c63ff, #a78bfa);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    /* Tab navigation */
+    .tabs {
+      display: flex;
+      gap: 0;
+      border-bottom: 1px solid var(--border);
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+    .tabs::-webkit-scrollbar { display: none; }
+
+    .tab {
+      padding: 0.75rem 1.25rem;
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: var(--muted);
+      background: none;
+      border: none;
+      border-bottom: 2px solid transparent;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: color 0.2s, border-color 0.2s;
+    }
+    .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+    .tab:hover { color: var(--text); }
+
+    .panel { display: none; padding: 1.25rem 1.5rem; }
+    .panel.active { display: block; }
+
+    /* Forms */
+    .form-group { margin-bottom: 1rem; }
+    label { display: block; font-size: 0.82rem; color: var(--muted); margin-bottom: 0.4rem; }
+
+    input[type=text], textarea {
+      width: 100%;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 0.6rem 0.85rem;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-family: inherit;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    input[type=text]:focus, textarea:focus { border-color: var(--accent); }
+    textarea { resize: vertical; min-height: 90px; }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.55rem 1.25rem;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      border: none;
+      cursor: pointer;
+      transition: opacity 0.2s, transform 0.15s;
+    }
+    .btn:hover { opacity: 0.85; transform: translateY(-1px); }
+    .btn:active { transform: translateY(0); }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+    .btn-primary { background: var(--accent); color: #fff; }
+    .btn-danger  { background: #ef4444; color: #fff; }
+    .btn-sm { padding: 0.3rem 0.75rem; font-size: 0.78rem; }
+
+    /* Result box */
+    .result {
+      margin-top: 1rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1rem;
+      font-size: 0.85rem;
+      display: none;
+    }
+    .result.show { display: block; }
+    .result.success { border-color: var(--green); }
+    .result.error   { border-color: var(--red); color: var(--red); }
+
+    .result-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      margin-top: 0.5rem;
+      color: var(--accent);
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 0.9rem;
+    }
+
+    /* File list */
+    .file-list { display: flex; flex-direction: column; gap: 0.6rem; margin-top: 1rem; }
+
+    .file-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 0.85rem 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    .file-icon { font-size: 1.3rem; flex-shrink: 0; }
+    .file-info { flex: 1; min-width: 0; }
+    .file-name { font-size: 0.9rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .file-date { font-size: 0.75rem; color: var(--muted); margin-top: 2px; }
+    .file-actions { display: flex; gap: 0.4rem; flex-shrink: 0; }
+
+    .badge {
+      display: inline-block;
+      padding: 0.15rem 0.5rem;
+      border-radius: 4px;
+      font-size: 0.7rem;
+      font-weight: 600;
+    }
+    .badge-sheets { background: rgba(52,168,83,0.15); color: var(--sheets-color); }
+    .badge-docs   { background: rgba(66,133,244,0.15); color: var(--docs-color); }
+
+    .spinner {
+      display: inline-block;
+      width: 16px; height: 16px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .section-title {
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 0.75rem;
+    }
+
+    .empty { text-align: center; padding: 2rem 1rem; color: var(--muted); font-size: 0.9rem; }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo">Workspace Tool</div>
+</header>
+
+<div class="tabs">
+  <button class="tab active" onclick="switchTab('dashboard')">🏠 Dashboard</button>
+  <button class="tab" onclick="switchTab('sheets')">📊 New Sheet</button>
+  <button class="tab" onclick="switchTab('docs')">📝 New Doc</button>
+  <button class="tab" onclick="switchTab('drive')">📁 Drive</button>
+</div>
+
+<!-- DASHBOARD -->
+<div id="tab-dashboard" class="panel active">
+  <p class="section-title">Recent files</p>
+  <div id="dashboard-content"><div class="empty">Loading...</div></div>
+</div>
+
+<!-- NEW SHEET -->
+<div id="tab-sheets" class="panel">
+  <p class="section-title">Create Spreadsheet</p>
+  <div class="form-group">
+    <label>Title</label>
+    <input type="text" id="sheet-title" placeholder="My Sheet" />
+  </div>
+  <div class="form-group">
+    <label>Headers (comma separated, optional)</label>
+    <input type="text" id="sheet-headers" placeholder="Name, Date, Value" />
+  </div>
+  <div class="form-group">
+    <label>First rows (one row per line, values comma separated, optional)</label>
+    <textarea id="sheet-rows" placeholder="Alice, 2025-01-01, 100&#10;Bob, 2025-01-02, 200"></textarea>
+  </div>
+  <button class="btn btn-primary" id="btn-create-sheet" onclick="submitCreateSheet()">
+    Create Sheet
+  </button>
+  <div id="sheet-result" class="result"></div>
+</div>
+
+<!-- NEW DOC -->
+<div id="tab-docs" class="panel">
+  <p class="section-title">Create Document</p>
+  <div class="form-group">
+    <label>Title</label>
+    <input type="text" id="doc-title" placeholder="My Document" />
+  </div>
+  <div class="form-group">
+    <label>Content (optional)</label>
+    <textarea id="doc-content" placeholder="Start writing..."></textarea>
+  </div>
+  <button class="btn btn-primary" id="btn-create-doc" onclick="submitCreateDoc()">
+    Create Doc
+  </button>
+  <div id="doc-result" class="result"></div>
+</div>
+
+<!-- DRIVE -->
+<div id="tab-drive" class="panel">
+  <p class="section-title" style="display:flex;align-items:center;justify-content:space-between">
+    Your files
+    <button class="btn btn-primary btn-sm" onclick="loadDrive()">Refresh</button>
+  </p>
+  <div id="drive-content"><div class="empty">Loading...</div></div>
+</div>
+
+<script>
+// ── Tab switching ──────────────────────────────────────────────────────────────
+function switchTab(name) {
+  document.querySelectorAll('.tab').forEach((t, i) => {
+    const panels = ['dashboard','sheets','docs','drive'];
+    t.classList.toggle('active', panels[i] === name);
+  });
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+
+  if (name === 'dashboard') loadDashboard();
+  if (name === 'drive') loadDrive();
+}
+
+// ── Helpers ────────────────────────────────────────────────────────────────────
+function setLoading(btnId, loading) {
+  const btn = document.getElementById(btnId);
+  if (loading) {
+    btn._text = btn.innerHTML;
+    btn.innerHTML = '<span class="spinner"></span> Working…';
+    btn.disabled = true;
+  } else {
+    btn.innerHTML = btn._text;
+    btn.disabled = false;
+  }
+}
+
+function showResult(elId, data, isError) {
+  const el = document.getElementById(elId);
+  el.className = 'result show ' + (isError ? 'error' : 'success');
+  if (isError) {
+    el.innerHTML = '❌ ' + (data.message || data);
+  } else {
+    el.innerHTML = `✅ <strong>${data.title}</strong> created successfully!<br>
+      <a class="result-link" href="${data.url}" target="_blank">🔗 Open in Google →</a>`;
+  }
+}
+
+function formatDate(iso) {
+  const d = new Date(iso);
+  const diff = Date.now() - d;
+  const h = Math.floor(diff / 3600000);
+  const dy = Math.floor(diff / 86400000);
+  if (h < 24) return h + 'h ago';
+  if (dy < 7) return dy + 'd ago';
+  return d.toLocaleDateString();
+}
+
+function mimeIcon(mimeType) {
+  if (mimeType.includes('spreadsheet')) return '📊';
+  if (mimeType.includes('document'))    return '📝';
+  if (mimeType.includes('folder'))      return '📁';
+  if (mimeType.includes('pdf'))         return '📄';
+  return '📎';
+}
+
+function mimeBadge(mimeType) {
+  if (mimeType.includes('spreadsheet')) return '<span class="badge badge-sheets">Sheet</span>';
+  if (mimeType.includes('document'))    return '<span class="badge badge-docs">Doc</span>';
+  return '';
+}
+
+// ── Create Sheet ───────────────────────────────────────────────────────────────
+function submitCreateSheet() {
+  const title   = document.getElementById('sheet-title').value.trim() || 'Untitled Sheet';
+  const headers = document.getElementById('sheet-headers').value.trim()
+                    .split(',').map(s => s.trim()).filter(Boolean);
+  const rawRows = document.getElementById('sheet-rows').value.trim();
+  const rows    = rawRows ? rawRows.split('\n').map(r => r.split(',').map(s => s.trim())) : [];
+
+  setLoading('btn-create-sheet', true);
+  google.script.run
+    .withSuccessHandler(data => { setLoading('btn-create-sheet', false); showResult('sheet-result', data, false); })
+    .withFailureHandler(err  => { setLoading('btn-create-sheet', false); showResult('sheet-result', err, true); })
+    .createSheet(title, headers, rows);
+}
+
+// ── Create Doc ─────────────────────────────────────────────────────────────────
+function submitCreateDoc() {
+  const title   = document.getElementById('doc-title').value.trim() || 'Untitled Doc';
+  const content = document.getElementById('doc-content').value.trim();
+
+  setLoading('btn-create-doc', true);
+  google.script.run
+    .withSuccessHandler(data => { setLoading('btn-create-doc', false); showResult('doc-result', data, false); })
+    .withFailureHandler(err  => { setLoading('btn-create-doc', false); showResult('doc-result', err, true); })
+    .createDoc(title, content);
+}
+
+// ── Dashboard ──────────────────────────────────────────────────────────────────
+function loadDashboard() {
+  document.getElementById('dashboard-content').innerHTML = '<div class="empty">Loading...</div>';
+  google.script.run
+    .withSuccessHandler(renderDashboard)
+    .withFailureHandler(() => {
+      document.getElementById('dashboard-content').innerHTML = '<div class="empty">Failed to load.</div>';
+    })
+    .getDashboardData();
+}
+
+function renderDashboard(data) {
+  const all = [...data.sheets.map(f => ({...f, _type:'sheet'})),
+               ...data.docs.map(f => ({...f, _type:'doc'}))]
+    .sort((a,b) => new Date(b.modified) - new Date(a.modified))
+    .slice(0, 15);
+
+  if (!all.length) {
+    document.getElementById('dashboard-content').innerHTML = '<div class="empty">No files yet. Create a Sheet or Doc!</div>';
+    return;
+  }
+
+  document.getElementById('dashboard-content').innerHTML =
+    '<div class="file-list">' +
+    all.map(f => `
+      <div class="file-card">
+        <div class="file-icon">${mimeIcon(f.mimeType)}</div>
+        <div class="file-info">
+          <div class="file-name">${f.name} ${mimeBadge(f.mimeType)}</div>
+          <div class="file-date">${formatDate(f.modified)}</div>
+        </div>
+        <div class="file-actions">
+          <a href="${f.url}" target="_blank" class="btn btn-primary btn-sm">Open</a>
+        </div>
+      </div>`).join('') +
+    '</div>';
+}
+
+// ── Drive ──────────────────────────────────────────────────────────────────────
+function loadDrive() {
+  document.getElementById('drive-content').innerHTML = '<div class="empty">Loading...</div>';
+  google.script.run
+    .withSuccessHandler(renderDrive)
+    .withFailureHandler(() => {
+      document.getElementById('drive-content').innerHTML = '<div class="empty">Failed to load.</div>';
+    })
+    .listFiles();
+}
+
+function renderDrive(files) {
+  if (!files.length) {
+    document.getElementById('drive-content').innerHTML = '<div class="empty">No files found.</div>';
+    return;
+  }
+  document.getElementById('drive-content').innerHTML =
+    '<div class="file-list">' +
+    files.map(f => `
+      <div class="file-card">
+        <div class="file-icon">${mimeIcon(f.mimeType)}</div>
+        <div class="file-info">
+          <div class="file-name">${f.name}</div>
+          <div class="file-date">${formatDate(f.modified)}</div>
+        </div>
+        <div class="file-actions">
+          <a href="${f.url}" target="_blank" class="btn btn-primary btn-sm">Open</a>
+          <button class="btn btn-danger btn-sm" onclick="trashFile('${f.id}', this)">🗑</button>
+        </div>
+      </div>`).join('') +
+    '</div>';
+}
+
+function trashFile(fileId, btn) {
+  if (!confirm('Move to trash?')) return;
+  btn.disabled = true;
+  google.script.run
+    .withSuccessHandler(() => loadDrive())
+    .withFailureHandler(() => { btn.disabled = false; alert('Failed.'); })
+    .deleteFile(fileId);
+}
+
+// Init
+loadDashboard();
+</script>
+</body>
+</html>
